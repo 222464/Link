@@ -11,8 +11,11 @@ find_package(SFML 2 REQUIRED system window graphics)
  
 include_directories(${SFML_INCLUDE_DIR})
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/source")
+file(GLOB_RECURSE LINK_SRC
+    "source/*.h"
+    "source/*.cpp"
+)
  
-add_executable(Link "${PROJECT_SOURCE_DIR}/source/Main.cpp")
+add_executable(Link ${LINK_SRC})
 
-target_link_libraries(Link ${SFML_LIBRARIES})
+target_link_libraries(Link ${SFML_LIBRARIES}})
