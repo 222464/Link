@@ -1,6 +1,6 @@
 #include "CSRL.h"
 
-using namespace deep;
+using namespace rl;
 
 void CSRL::createRandom(int inputsPerState, const std::vector<LayerDesc> &layerDescs, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, std::mt19937 &generator) {
 	_inputsPerState = inputsPerState;

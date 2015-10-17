@@ -3,7 +3,7 @@
 #include <vector>
 #include <random>
 
-namespace deep {
+namespace rl {
 	// Unit part of the self-optimizing hierarchy.
 	class SDRRL {
 	private:

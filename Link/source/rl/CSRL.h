@@ -4,7 +4,7 @@
 
 #include <array>
 
-namespace deep {
+namespace rl {
 	class CSRL {
 	public:
 		struct Column {

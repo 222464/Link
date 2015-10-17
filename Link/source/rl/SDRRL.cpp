@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-using namespace deep;
+using namespace rl;
 
 void SDRRL::createRandom(int numStates, int numActions, int numCells, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, std::mt19937 &generator) {
 	std::uniform_real_distribution<float> weightDist(initMinWeight, initMaxWeight);
