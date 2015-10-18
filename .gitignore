@@ -194,3 +194,13 @@ FakesAssemblies/
 
 # Visual Studio 6 workspace options file
 *.opt
+
+#more visual studio stuff
+*.sln
+
+#Project specific
+*.dll
+*.lib
+*.exp
+*.pdb
+*.ilk
