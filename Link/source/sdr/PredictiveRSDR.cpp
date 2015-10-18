@@ -1,5 +1,8 @@
 #include "PredictiveRSDR.h"
 
+#include <SFML/Window.hpp>
+#include <iostream>
+
 using namespace sdr;
 
 void PredictiveRSDR::createRandom(int inputWidth, int inputHeight, const std::vector<LayerDesc> &layerDescs, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, std::mt19937 &generator) {
@@ -112,6 +115,9 @@ void PredictiveRSDR::simStep() {
 	for (int l = _layers.size() - 1; l >= 0; l--) {
 		attentions[l].resize(_layers[l]._predictionNodes.size());
 
+		std::vector<float> predictionActivations(_layers[l]._predictionNodes.size());
+		std::vector<float> predictionStates(_layers[l]._predictionNodes.size());
+
 		for (int pi = 0; pi < _layers[l]._predictionNodes.size(); pi++) {
 			PredictionNode &p = _layers[l]._predictionNodes[pi];
 
@@ -147,7 +153,16 @@ void PredictiveRSDR::simStep() {
 			for (int ci = 0; ci < p._predictiveConnections.size(); ci++)
 				activation += p._predictiveConnections[ci]._weight * _layers[l]._sdr.getHiddenState(p._predictiveConnections[ci]._index);
 
-			p._state = activation > 0.0f ? 1.0f : 0.0f;
+			predictionActivations[pi] = activation;
+		}
+
+		// Inhibit to find state
+		_layers[l]._sdr.inhibit(predictionActivations, predictionStates);
+
+		for (int pi = 0; pi < _layers[l]._predictionNodes.size(); pi++) {
+			PredictionNode &p = _layers[l]._predictionNodes[pi];
+
+			p._state = predictionStates[pi];
 		}
 	}
 
@@ -170,4 +185,12 @@ void PredictiveRSDR::simStep() {
 		firstLayerPrediction[pi] = _layers.front()._predictionNodes[pi]._state;
 
 	_layers.front()._sdr.reconstructFeedForward(firstLayerPrediction, _prediction);
+
+	/*for (int i = 0; i < _layers.front()._predictionNodes.size(); i++)
+		if (_layers.front()._sdr.getHiddenState(i) > 0.5f)
+			std::cout << "X";
+		else
+			std::cout << " ";
+
+	std::cout << std::endl;*/
 }

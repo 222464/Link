@@ -54,6 +54,7 @@ namespace sdr {
 		void createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, int hiddenHeight, int receptiveRadius, int inhibitionRadius, int recurrentRadius, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, std::mt19937 &generator);
 
 		void activate();
+		void inhibit(const std::vector<float> &activations, std::vector<float> &states);
 		void reconstruct();
 		void reconstructFeedForward(const std::vector<float> &states, std::vector<float> &recon);
 		void learn(float learnFeedForward, float learnRecurrent, float learnLateral, float learnBias, float sparsity);

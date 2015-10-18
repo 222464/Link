@@ -56,7 +56,7 @@ void RSDR::createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, in
 
 					Connection c;
 
-					c._weight = weightDist(generator) * 2.0f - 1.0f;
+					c._weight = weightDist(generator);
 					c._index = vi;
 					
 					_hidden[hi]._feedForwardConnections.push_back(c);
@@ -88,6 +88,8 @@ void RSDR::createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, in
 				}
 			}
 
+		_hidden[hi]._lateralConnections.shrink_to_fit();
+
 		// Recurrent
 		_hidden[hi]._recurrentConnections.reserve(recurrentSize);
 
@@ -104,12 +106,14 @@ void RSDR::createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, in
 
 					Connection c;
 
-					c._weight = inhibitionDist(generator);
+					c._weight = weightDist(generator);
 					c._index = hio;
 
 					_hidden[hi]._recurrentConnections.push_back(c);
 				}
 			}
+
+		_hidden[hi]._recurrentConnections.shrink_to_fit();
 	}
 }
 
@@ -134,7 +138,22 @@ void RSDR::activate() {
 		for (int ci = 0; ci < _hidden[hi]._lateralConnections.size(); ci++)
 			inhibition += _hidden[hi]._lateralConnections[ci]._weight * (_hidden[_hidden[hi]._lateralConnections[ci]._index]._activation > _hidden[hi]._activation ? 1.0f : 0.0f);
 
-		_hidden[hi]._state = 1.0f < inhibition ? 1.0f : 0.0f;
+		_hidden[hi]._state = inhibition < 1.0f ? 1.0f : 0.0f;
+	}
+}
+
+void RSDR::inhibit(const std::vector<float> &activations, std::vector<float> &states) {
+	states.clear();
+	states.assign(_hidden.size(), 0.0f);
+
+	// Inhibit
+	for (int hi = 0; hi < _hidden.size(); hi++) {
+		float inhibition = _hidden[hi]._bias;
+
+		for (int ci = 0; ci < _hidden[hi]._lateralConnections.size(); ci++)
+			inhibition += _hidden[hi]._lateralConnections[ci]._weight * (activations[_hidden[hi]._lateralConnections[ci]._index] > activations[hi] ? 1.0f : 0.0f);
+
+		states[hi] = inhibition < 1.0f ? 1.0f : 0.0f;
 	}
 }
 
@@ -150,16 +169,13 @@ void RSDR::reconstruct() {
 			_visible[_hidden[hi]._feedForwardConnections[ci]._index]._reconstruction += _hidden[hi]._feedForwardConnections[ci]._weight * _hidden[hi]._state;
 	
 		for (int ci = 0; ci < _hidden[hi]._recurrentConnections.size(); ci++)
-			_hidden[_hidden[hi]._recurrentConnections[ci]._index]._reconstruction += _hidden[hi]._recurrentConnections[ci]._weight * _hidden[hi]._statePrev;
+			_hidden[_hidden[hi]._recurrentConnections[ci]._index]._reconstruction += _hidden[hi]._recurrentConnections[ci]._weight * _hidden[hi]._state;
 	}
 }
 
 void RSDR::reconstructFeedForward(const std::vector<float> &states, std::vector<float> &recon) {
 	recon.clear();
 	recon.assign(_visible.size(), 0.0f);
-
-	for (int vi = 0; vi < _visible.size(); vi++)
-		_visible[vi]._reconstruction = 0.0f;
 
 	for (int hi = 0; hi < _hidden.size(); hi++) {
 		for (int ci = 0; ci < _hidden[hi]._feedForwardConnections.size(); ci++)
@@ -174,8 +190,8 @@ void RSDR::learn(float learnFeedForward, float learnRecurrent, float learnLatera
 	for (int vi = 0; vi < _visible.size(); vi++)
 		visibleErrors[vi] = _visible[vi]._input - _visible[vi]._reconstruction;
 
-	for (int vi = 0; vi < _hidden.size(); vi++)
-		hiddenErrors[vi] = _hidden[vi]._statePrev - _hidden[vi]._reconstruction;
+	for (int hi = 0; hi < _hidden.size(); hi++)
+		hiddenErrors[hi] = _hidden[hi]._statePrev - _hidden[hi]._reconstruction;
 
 	float sparsitySquared = sparsity * sparsity;
 
@@ -191,7 +207,7 @@ void RSDR::learn(float learnFeedForward, float learnRecurrent, float learnLatera
 		}
 
 		for (int ci = 0; ci < _hidden[hi]._lateralConnections.size(); ci++)
-			_hidden[hi]._lateralConnections[ci]._weight = std::max(0.0f, _hidden[hi]._lateralConnections[ci]._weight + learnLateral * (_hidden[hi]._state * _hidden[_hidden[hi]._lateralConnections[ci]._index]._state - sparsitySquared)); //_hidden[_hidden[hi]._lateralConnections[ci]._index]._state * 
+			_hidden[hi]._lateralConnections[ci]._weight = std::max(0.0f, _hidden[hi]._lateralConnections[ci]._weight + learnLateral * (_hidden[hi]._state * (_hidden[_hidden[hi]._lateralConnections[ci]._index]._activation < _hidden[hi]._activation ? 1.0f : 0.0f) - sparsitySquared)); //_hidden[_hidden[hi]._lateralConnections[ci]._index]._state * 
 
 		_hidden[hi]._bias += learnBias * (_hidden[hi]._state - sparsity);
 	}
@@ -204,8 +220,8 @@ void RSDR::learn(const std::vector<float> &attentions, float learnFeedForward, f
 	for (int vi = 0; vi < _visible.size(); vi++)
 		visibleErrors[vi] = _visible[vi]._input - _visible[vi]._reconstruction;
 
-	for (int vi = 0; vi < _hidden.size(); vi++)
-		hiddenErrors[vi] = _hidden[vi]._statePrev - _hidden[vi]._reconstruction;
+	for (int hi = 0; hi < _hidden.size(); hi++)
+		hiddenErrors[hi] = _hidden[hi]._statePrev - _hidden[hi]._reconstruction;
 
 	float sparsitySquared = sparsity * sparsity;
 
@@ -221,7 +237,7 @@ void RSDR::learn(const std::vector<float> &attentions, float learnFeedForward, f
 		}
 
 		for (int ci = 0; ci < _hidden[hi]._lateralConnections.size(); ci++)
-			_hidden[hi]._lateralConnections[ci]._weight = std::max(0.0f, _hidden[hi]._lateralConnections[ci]._weight + learnLateral * attentions[hi] * (_hidden[hi]._state * _hidden[_hidden[hi]._lateralConnections[ci]._index]._state - sparsitySquared)); //_hidden[_hidden[hi]._lateralConnections[ci]._index]._state * 
+			_hidden[hi]._lateralConnections[ci]._weight = std::max(0.0f, _hidden[hi]._lateralConnections[ci]._weight + learnLateral * attentions[hi] * (_hidden[hi]._state * (_hidden[_hidden[hi]._lateralConnections[ci]._index]._activation < _hidden[hi]._activation ? 1.0f : 0.0f) - sparsitySquared));
 
 		_hidden[hi]._bias += learnBias * (_hidden[hi]._state - sparsity);
 	}

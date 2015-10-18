@@ -38,18 +38,18 @@ int main() {
 
 	std::vector<sdr::PredictiveRSDR::LayerDesc> layerDescs(3);
 
-	layerDescs[0]._width = 32;
-	layerDescs[0]._height = 32;
+	layerDescs[0]._width = 16;
+	layerDescs[0]._height = 16;
 
-	layerDescs[1]._width = 24;
-	layerDescs[1]._height = 24;
+	layerDescs[1]._width = 12;
+	layerDescs[1]._height = 12;
 
-	layerDescs[2]._width = 16;
-	layerDescs[2]._height = 16;
+	layerDescs[2]._width = 8;
+	layerDescs[2]._height = 8;
 
 	sdr::PredictiveRSDR prsdr;
 
-	prsdr.createRandom(inputsRoot, inputsRoot, layerDescs, -0.01f, 0.01f, 0.01f, 1.0f, generator);
+	prsdr.createRandom(inputsRoot, inputsRoot, layerDescs, -0.001f, 0.001f, 0.01f, 0.05f, generator);
 
 	// ---------------------------- Game Loop -----------------------------
 
@@ -62,6 +62,8 @@ int main() {
 	float dt = 0.017f;
 
 	int current = 0;
+
+	float averageError = 0.0f;
 
 	do {
 		clock.restart();
@@ -105,6 +107,18 @@ int main() {
 		std::cout << predChar;
 
 		current = (current + 1) % test.length();
+
+		float error = 1.0f;
+
+		if (predChar == test[current])
+			error = 0.0f;
+
+		//std::cout << predChar << " " << test[current] << std::endl;
+
+		averageError = 0.99f * averageError + 0.01f * error;
+
+		if (current == 0)
+			std::cout << "Average Error: " << averageError << std::endl;
 		
 		//window.display();
 	} while (!quit);
