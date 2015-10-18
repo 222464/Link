@@ -65,6 +65,15 @@ int main() {
 
 	float averageError = 0.0f;
 
+	sf::Font font;
+	if (!font.loadFromFile("C:/Windows/Fonts/Arial.ttf"))
+		return 1;
+
+	sf::Text avgText;
+	avgText.setColor(sf::Color::Red);
+	avgText.setFont(font);
+	avgText.setPosition(sf::Vector2f(100.0f, 100.0f));
+
 	do {
 		clock.restart();
 
@@ -86,6 +95,10 @@ int main() {
 			quit = true;
 
 		window.clear();
+
+		window.draw(avgText);
+
+		window.display();
 
 		for (int i = 0; i < numInputs; i++)
 			prsdr.setInput(i, 0.0f);
@@ -118,9 +131,8 @@ int main() {
 		averageError = 0.99f * averageError + 0.01f * error;
 
 		if (current == 0)
-			std::cout << "Average Error: " << averageError << std::endl;
-		
-		//window.display();
+			avgText.setString("Avg Err: " + std::to_string(averageError));
+			std::cout << "\r";
 	} while (!quit);
 
 	return 0;
