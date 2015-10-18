@@ -18,4 +18,4 @@ file(GLOB_RECURSE LINK_SRC
  
 add_executable(Link ${LINK_SRC})
 
-target_link_libraries(Link ${SFML_LIBRARIES}})
+target_link_libraries(Link ${SFML_LIBRARIES})
