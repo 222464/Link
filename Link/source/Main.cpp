@@ -129,9 +129,9 @@ int main() {
 		//std::cout << predChar << " " << test[current] << std::endl;
 
 		averageError = 0.99f * averageError + 0.01f * error;
+		avgText.setString("Avg Err: " + std::to_string(averageError));
 
 		if (current == 0)
-			avgText.setString("Avg Err: " + std::to_string(averageError));
 			std::cout << "\r";
 	} while (!quit);
 
