@@ -9,6 +9,8 @@
 #include <iostream>
 #include <random>
 
+#include <duktape/duktape.h>
+
 int main() {
 	sf::RenderWindow window;
 
