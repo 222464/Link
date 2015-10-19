@@ -27,12 +27,12 @@ namespace sdr {
 
 			LayerDesc()
 				: _width(16), _height(16),
-				_receptiveRadius(8), _recurrentRadius(6), _lateralRadius(5), _predictiveRadius(6), _feedBackRadius(8),
-				_learnFeedForward(0.1f), _learnRecurrent(0.1f), _learnLateral(0.2f), _learnBias(0.05f),
-				_learnFeedBack(0.01f), _learnPrediction(0.01f),
+				_receptiveRadius(6), _recurrentRadius(5), _lateralRadius(4), _predictiveRadius(6), _feedBackRadius(6),
+				_learnFeedForward(0.1f), _learnRecurrent(0.1f), _learnLateral(0.5f), _learnBias(0.1f),
+				_learnFeedBack(0.5f), _learnPrediction(0.5f),
 				_averageSurpriseDecay(0.01f),
 				_attentionFactor(2.0f),
-				_sparsity(0.05f)
+				_sparsity(0.02f)
 			{}
 		};
 
@@ -45,10 +45,13 @@ namespace sdr {
 			float _state;
 			float _statePrev;
 
+			float _activation;
+			float _activationPrev;
+
 			float _averageSurprise; // Use to keep track of importance for prediction. If current error is greater than average, then attention is > 0.5 else < 0.5 (sigmoid)
 
 			PredictionNode()
-				: _state(0.0f), _statePrev(0.0f), _averageSurprise(0.0f)
+				: _state(0.0f), _statePrev(0.0f), _activation(0.0f), _activationPrev(0.0f), _averageSurprise(0.0f)
 			{}
 		};
 

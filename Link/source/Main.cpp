@@ -22,7 +22,7 @@ int main() {
 
 	std::mt19937 generator(time(nullptr));
 
-	std::string test = "This is a string to test the prediction capabilities of PredictiveRSDR.";
+	std::string test = "I have sent you a daughter-in-law";
 
 	int minimum = 255;
 	int maximum = 0;
@@ -32,24 +32,24 @@ int main() {
 		maximum = std::max(static_cast<int>(test[i]), maximum);
 	}
 
-	int numInputs = maximum - minimum;
+	int numInputs = maximum - minimum + 1;
 
 	int inputsRoot = std::ceil(std::sqrt(static_cast<float>(numInputs)));
 
 	std::vector<sdr::PredictiveRSDR::LayerDesc> layerDescs(3);
 
-	layerDescs[0]._width = 16;
-	layerDescs[0]._height = 16;
+	layerDescs[0]._width = 64;
+	layerDescs[0]._height = 64;
 
-	layerDescs[1]._width = 12;
-	layerDescs[1]._height = 12;
+	layerDescs[1]._width = 32;
+	layerDescs[1]._height = 32;
 
-	layerDescs[2]._width = 8;
-	layerDescs[2]._height = 8;
+	layerDescs[2]._width = 16;
+	layerDescs[2]._height = 16;
 
 	sdr::PredictiveRSDR prsdr;
 
-	prsdr.createRandom(inputsRoot, inputsRoot, layerDescs, -0.001f, 0.001f, 0.01f, 0.05f, generator);
+	prsdr.createRandom(inputsRoot, inputsRoot, layerDescs, -0.01f, 0.01f, 0.01f, 0.05f, generator);
 
 	// ---------------------------- Game Loop -----------------------------
 
@@ -96,11 +96,13 @@ int main() {
 
 		window.clear();
 
-		window.draw(avgText);
+		if (current == 0) {
+			window.draw(avgText);
 
-		window.display();
+			window.display();
+		}
 
-		for (int i = 0; i < numInputs; i++)
+		for (int i = 0; i < inputsRoot * inputsRoot; i++)
 			prsdr.setInput(i, 0.0f);
 
 		int index = test[current] - minimum;
@@ -132,7 +134,7 @@ int main() {
 		avgText.setString("Avg Err: " + std::to_string(averageError));
 
 		if (current == 0)
-			std::cout << "\r";
+			std::cout << "\n";
 	} while (!quit);
 
 	return 0;
