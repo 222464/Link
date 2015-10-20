@@ -6,14 +6,15 @@
 
 namespace action {
 	class Block {
-	public:
+	private:
 		std::string _code;
-		sdr::PredictiveRSDR _prsdr;
+		std::vector<float> _sdr;
 
-		// assigns the given code to this block and generates an sdr from it
-		void create(const std::string& code, const std::vector<sdr::PredictiveRSDR::LayerDesc>& layerDescs, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, std::mt19937& generator, int numLearnIterations);
-		// assigns the code in the given file and generates an sdr from it
-		void createFromFile(const std::string& path, const std::vector<sdr::PredictiveRSDR::LayerDesc>& layerDescs, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, std::mt19937& generator, int numLearnIterations);
+	public:
+		// create from code string
+		void create(sdr::PredictiveRSDR& prsdr, const std::string& code, int numIterations);
+		// create form code file
+		void createFromFile(sdr::PredictiveRSDR& prsdr, const std::string& path, int numIterations);
 
 		// executes the block's code
 		bool execute();
