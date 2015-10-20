@@ -48,6 +48,10 @@ void action::Block::createFromFile(sdr::PredictiveRSDR& prsdr, const std::string
 	}
 }
 
+std::vector<float> action::Block::getSDR() const {
+	return _sdr;
+}
+
 bool action::Block::execute() {
 	duk_context* ctx = duk_create_heap_default();
 	if (!ctx)

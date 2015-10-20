@@ -16,6 +16,9 @@ namespace action {
 		// create form code file
 		void createFromFile(sdr::PredictiveRSDR& prsdr, const std::string& path, int numIterations);
 
+		// gets the block's matching SDR
+		std::vector<float> getSDR() const;
+
 		// executes the block's code
 		bool execute();
 	};
