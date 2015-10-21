@@ -124,13 +124,14 @@ void RSDR::activate() {
 	for (int hi = 0; hi < _hidden.size(); hi++) {
 		float sum = 0.0f;
 
-		for (int ci = 0; ci < _hidden[hi]._feedForwardConnections.size(); ci++)
-			sum += _visible[_hidden[hi]._feedForwardConnections[ci]._index]._input * _hidden[hi]._feedForwardConnections[ci]._weight;
+		for (int ci = 0; ci < _hidden[hi]._feedForwardConnections.size(); ci++) {
+			sum += std::pow(_visible[_hidden[hi]._feedForwardConnections[ci]._index]._input - _hidden[hi]._feedForwardConnections[ci]._weight, 2);
+		}
 
 		for (int ci = 0; ci < _hidden[hi]._recurrentConnections.size(); ci++)
-			sum += _hidden[_hidden[hi]._recurrentConnections[ci]._index]._statePrev * _hidden[hi]._recurrentConnections[ci]._weight;
+			sum += std::pow(_hidden[_hidden[hi]._recurrentConnections[ci]._index]._statePrev - _hidden[hi]._recurrentConnections[ci]._weight, 2);
 
-		_hidden[hi]._activation = sum;
+		_hidden[hi]._activation = -sum;
 	}
 
 	// Inhibit
@@ -140,7 +141,7 @@ void RSDR::activate() {
 		for (int ci = 0; ci < _hidden[hi]._lateralConnections.size(); ci++)
 			inhibition += _hidden[hi]._lateralConnections[ci]._weight * (_hidden[_hidden[hi]._lateralConnections[ci]._index]._activation > _hidden[hi]._activation ? 1.0f : 0.0f);
 
-		_hidden[hi]._state = _hidden[hi]._activation > inhibition ? 1.0f : 0.0f;
+		_hidden[hi]._state = 1.0f > inhibition ? 1.0f : 0.0f;
 	}
 }
 
