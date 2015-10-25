@@ -24,7 +24,7 @@ int main() {
 
 	std::mt19937 generator(time(nullptr));
 
-	std::string test = "I have sent you a daughter-in-law";
+	std::string test = "I once stated: Hold there, nobel knight, ye shall not cross this bridge. Then came a rebutal: You shallt not hinder my progression through this kingdom. Thou cannot prohibit my forward motion!";
 
 	int minimum = 255;
 	int maximum = 0;
@@ -40,14 +40,14 @@ int main() {
 
 	std::vector<sdr::PredictiveRSDR::LayerDesc> layerDescs(3);
 
-	layerDescs[0]._width = 64;
-	layerDescs[0]._height = 64;
+	layerDescs[0]._width = 8;
+	layerDescs[0]._height = 8;
 
-	layerDescs[1]._width = 32;
-	layerDescs[1]._height = 32;
+	layerDescs[1]._width = 6;
+	layerDescs[1]._height = 6;
 
-	layerDescs[2]._width = 16;
-	layerDescs[2]._height = 16;
+	layerDescs[2]._width = 4;
+	layerDescs[2]._height = 4;
 
 	sdr::PredictiveRSDR prsdr;
 
@@ -96,9 +96,10 @@ int main() {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 			quit = true;
 
-		window.clear();
-
+		
 		if (current == 0) {
+			window.clear();
+			
 			window.draw(avgText);
 
 			window.display();

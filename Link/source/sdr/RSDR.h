@@ -51,6 +51,10 @@ namespace sdr {
 		std::vector<HiddenNode> _hidden;
 
 	public:
+		static float sigmoid(float x) {
+			return 1.0f / (1.0f + std::exp(-x));
+		}
+
 		void createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, int hiddenHeight, int receptiveRadius, int inhibitionRadius, int recurrentRadius, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, std::mt19937 &generator);
 
 		void activate();

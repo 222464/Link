@@ -27,12 +27,12 @@ namespace sdr {
 
 			LayerDesc()
 				: _width(16), _height(16),
-				_receptiveRadius(10), _recurrentRadius(6), _lateralRadius(5), _predictiveRadius(7), _feedBackRadius(8),
-				_learnFeedForward(0.1f), _learnRecurrent(0.1f), _learnLateral(0.3f), _learnBias(0.05f),
+				_receptiveRadius(16), _recurrentRadius(6), _lateralRadius(5), _predictiveRadius(7), _feedBackRadius(8),
+				_learnFeedForward(0.02f), _learnRecurrent(0.02f), _learnLateral(0.1f), _learnBias(0.001f),
 				_learnFeedBack(0.01f), _learnPrediction(0.01f),
 				_averageSurpriseDecay(0.01f),
 				_attentionFactor(4.0f),
-				_sparsity(0.1f)
+				_sparsity(0.05f)
 			{}
 		};
 
