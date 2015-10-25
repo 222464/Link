@@ -40,18 +40,18 @@ int main() {
 
 	std::vector<sdr::PredictiveRSDR::LayerDesc> layerDescs(3);
 
-	layerDescs[0]._width = 8;
-	layerDescs[0]._height = 8;
+	layerDescs[0]._width = 16;
+	layerDescs[0]._height = 16;
 
-	layerDescs[1]._width = 6;
-	layerDescs[1]._height = 6;
+	layerDescs[1]._width = 12;
+	layerDescs[1]._height = 12;
 
-	layerDescs[2]._width = 4;
-	layerDescs[2]._height = 4;
+	layerDescs[2]._width = 8;
+	layerDescs[2]._height = 8;
 
 	sdr::PredictiveRSDR prsdr;
 
-	prsdr.createRandom(inputsRoot, inputsRoot, layerDescs, -0.01f, 0.01f, 0.01f, 0.05f, generator);
+	prsdr.createRandom(inputsRoot, inputsRoot, layerDescs, -0.01f, 0.01f, 0.01f, 0.05f, 0.1f, generator);
 
 	// ---------------------------- Game Loop -----------------------------
 

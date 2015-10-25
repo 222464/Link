@@ -5,7 +5,7 @@
 
 using namespace sdr;
 
-void PredictiveRSDR::createRandom(int inputWidth, int inputHeight, const std::vector<LayerDesc> &layerDescs, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, std::mt19937 &generator) {
+void PredictiveRSDR::createRandom(int inputWidth, int inputHeight, const std::vector<LayerDesc> &layerDescs, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, float initThreshold, std::mt19937 &generator) {
 	std::uniform_real_distribution<float> weightDist(initMinWeight, initMaxWeight);
 	
 	_layerDescs = layerDescs;
@@ -19,7 +19,7 @@ void PredictiveRSDR::createRandom(int inputWidth, int inputHeight, const std::ve
 	int heightPrev = inputHeight;
 
 	for (int l = 0; l < _layerDescs.size(); l++) {
-		_layers[l]._sdr.createRandom(widthPrev, heightPrev, _layerDescs[l]._width, _layerDescs[l]._height, _layerDescs[l]._receptiveRadius, _layerDescs[l]._lateralRadius, _layerDescs[l]._recurrentRadius, initMinWeight, initMaxWeight, initMinInhibition, initMaxInhibition, generator);
+		_layers[l]._sdr.createRandom(widthPrev, heightPrev, _layerDescs[l]._width, _layerDescs[l]._height, _layerDescs[l]._receptiveRadius, _layerDescs[l]._lateralRadius, _layerDescs[l]._recurrentRadius, initMinWeight, initMaxWeight, initMinInhibition, initMaxInhibition, initThreshold, generator);
 
 		_layers[l]._predictionNodes.resize(_layerDescs[l]._width * _layerDescs[l]._height);
 
@@ -98,7 +98,7 @@ void PredictiveRSDR::createRandom(int inputWidth, int inputHeight, const std::ve
 void PredictiveRSDR::simStep(bool learn) {
 	// Feature extraction
 	for (int l = 0; l < _layers.size(); l++) {
-		_layers[l]._sdr.activate();
+		_layers[l]._sdr.activate(_layerDescs[l]._subIterSettle, _layerDescs[l]._subIterMeasure, _layerDescs[l]._leak);
 
 		_layers[l]._sdr.reconstruct();
 
@@ -159,7 +159,7 @@ void PredictiveRSDR::simStep(bool learn) {
 		}
 
 		// Inhibit to find state
-		_layers[l]._sdr.inhibit(predictionActivations, predictionStates);
+		_layers[l]._sdr.inhibit(_layerDescs[l]._subIterSettle, _layerDescs[l]._subIterMeasure, _layerDescs[l]._leak, predictionActivations, predictionStates);
 
 		for (int pi = 0; pi < _layers[l]._predictionNodes.size(); pi++) {
 			PredictionNode &p = _layers[l]._predictionNodes[pi];
@@ -170,7 +170,7 @@ void PredictiveRSDR::simStep(bool learn) {
 
 	for (int l = 0; l < _layers.size(); l++) {
 		if (learn)
-			_layers[l]._sdr.learn(attentions[l], _layerDescs[l]._learnFeedForward, _layerDescs[l]._learnRecurrent, _layerDescs[l]._learnLateral, _layerDescs[l]._learnBias, _layerDescs[l]._sparsity);
+			_layers[l]._sdr.learn(attentions[l], _layerDescs[l]._learnFeedForward, _layerDescs[l]._learnRecurrent, _layerDescs[l]._learnLateral, _layerDescs[l]._learnThreshold, _layerDescs[l]._sparsity);
 
 		_layers[l]._sdr.stepEnd();
 

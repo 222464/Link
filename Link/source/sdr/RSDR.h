@@ -17,17 +17,21 @@ namespace sdr {
 			std::vector<Connection> _lateralConnections;
 			std::vector<Connection> _recurrentConnections;
 
-			float _bias;
+			float _threshold;
 
 			float _state;
 			float _statePrev;
+			float _spike;
+			float _spikePrev;
+			float _averageState;
 
+			float _excitation;
 			float _activation;
 
 			float _reconstruction;
 
 			HiddenNode()
-				: _state(0.0f), _statePrev(0.0f), _activation(0.0f), _reconstruction(0.0f)
+				: _state(0.0f), _statePrev(0.0f), _spike(0.0f), _spikePrev(0.0f), _averageState(0.0f), _excitation(0.0f), _activation(0.0f), _reconstruction(0.0f)
 			{}
 		};
 
@@ -55,14 +59,14 @@ namespace sdr {
 			return 1.0f / (1.0f + std::exp(-x));
 		}
 
-		void createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, int hiddenHeight, int receptiveRadius, int inhibitionRadius, int recurrentRadius, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, std::mt19937 &generator);
+		void createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, int hiddenHeight, int receptiveRadius, int inhibitionRadius, int recurrentRadius, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, float initThreshold, std::mt19937 &generator);
 
-		void activate();
-		void inhibit(const std::vector<float> &activations, std::vector<float> &states);
+		void activate(int subIterSettle, int subIterMeasure, float leak);
+		void inhibit(int subIterSettle, int subIterMeasure, float leak, const std::vector<float> &activations, std::vector<float> &states);
 		void reconstruct();
 		void reconstructFeedForward(const std::vector<float> &states, std::vector<float> &recon);
-		void learn(float learnFeedForward, float learnRecurrent, float learnLateral, float learnBias, float sparsity);
-		void learn(const std::vector<float> &attentions, float learnFeedForward, float learnRecurrent, float learnLateral, float learnBias, float sparsity);
+		void learn(float learnFeedForward, float learnRecurrent, float learnLateral, float learnThreshold, float sparsity);
+		void learn(const std::vector<float> &attentions, float learnFeedForward, float learnRecurrent, float learnLateral, float learnThreshold, float sparsity);
 		void stepEnd();
 
 		void setVisibleInput(int index, float value) {

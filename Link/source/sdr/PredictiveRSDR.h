@@ -16,9 +16,13 @@ namespace sdr {
 
 			int _receptiveRadius, _recurrentRadius, _lateralRadius, _predictiveRadius, _feedBackRadius;
 
-			float _learnFeedForward, _learnRecurrent, _learnLateral, _learnBias;
+			float _learnFeedForward, _learnRecurrent, _learnLateral, _learnThreshold;
 
 			float _learnFeedBack, _learnPrediction;
+
+			int _subIterSettle;
+			int _subIterMeasure;
+			float _leak;
 
 			float _averageSurpriseDecay;
 			float _attentionFactor;
@@ -28,11 +32,12 @@ namespace sdr {
 			LayerDesc()
 				: _width(16), _height(16),
 				_receptiveRadius(16), _recurrentRadius(6), _lateralRadius(5), _predictiveRadius(7), _feedBackRadius(8),
-				_learnFeedForward(0.02f), _learnRecurrent(0.02f), _learnLateral(0.1f), _learnBias(0.001f),
-				_learnFeedBack(0.01f), _learnPrediction(0.01f),
+				_learnFeedForward(0.05f), _learnRecurrent(0.05f), _learnLateral(0.2f), _learnThreshold(0.03f),
+				_learnFeedBack(0.1f), _learnPrediction(0.1f),
+				_subIterSettle(17), _subIterMeasure(17), _leak(0.1f),
 				_averageSurpriseDecay(0.01f),
 				_attentionFactor(4.0f),
-				_sparsity(0.05f)
+				_sparsity(0.01f)
 			{}
 		};
 
@@ -72,7 +77,7 @@ namespace sdr {
 		std::vector<float> _prediction;
 
 	public:
-		void createRandom(int inputWidth, int inputHeight, const std::vector<LayerDesc> &layerDescs, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, std::mt19937 &generator);
+		void createRandom(int inputWidth, int inputHeight, const std::vector<LayerDesc> &layerDescs, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, float initThreshold, std::mt19937 &generator);
 
 		void simStep(bool learn = true);
 
