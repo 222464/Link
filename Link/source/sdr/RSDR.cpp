@@ -8,9 +8,8 @@
 
 using namespace sdr;
 
-void RSDR::createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, int hiddenHeight, int receptiveRadius, int inhibitionRadius, int recurrentRadius, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, float initThreshold, std::mt19937 &generator) {
+void RSDR::createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, int hiddenHeight, int receptiveRadius, int inhibitionRadius, int recurrentRadius, float initMinWeight, float initMaxWeight, float initThreshold, std::mt19937 &generator) {
 	std::uniform_real_distribution<float> weightDist(initMinWeight, initMaxWeight);
-	std::uniform_real_distribution<float> inhibitionDist(initMinInhibition, initMaxInhibition);
 
 	_visibleWidth = visibleWidth;
 	_visibleHeight = visibleHeight;
@@ -140,7 +139,7 @@ void RSDR::activate(float sparsity) {
 		float inhibition = 0.0f;
 
 		for (int ci = 0; ci < _hidden[hi]._lateralConnections.size(); ci++)
-			inhibition += _hidden[_hidden[hi]._lateralConnections[ci]]._activation > _hidden[hi]._activation ? 1.0f : 0.0f;
+			inhibition += _hidden[_hidden[hi]._lateralConnections[ci]]._activation >= _hidden[hi]._activation ? 1.0f : 0.0f;
 
 		_hidden[hi]._state = inhibition < numActive ? 1.0f : 0.0f;
 	}
@@ -157,7 +156,7 @@ void RSDR::inhibit(float sparsity, const std::vector<float> &activations, std::v
 		float inhibition = 0.0f;
 
 		for (int ci = 0; ci < _hidden[hi]._lateralConnections.size(); ci++)
-			inhibition += activations[_hidden[hi]._lateralConnections[ci]] > activations[hi] ? 1.0f : 0.0f;
+			inhibition += activations[_hidden[hi]._lateralConnections[ci]] >= activations[hi] ? 1.0f : 0.0f;
 
 		states[hi] = inhibition < numActive ? 1.0f : 0.0f;
 	}
@@ -187,11 +186,11 @@ void RSDR::reconstruct() {
 		}
 	}
 
-	for (int vi = 0; vi < _visible.size(); vi++)
-		_visible[vi]._reconstruction /= std::max(1.0f, visibleDivs[vi]);
+	//for (int vi = 0; vi < _visible.size(); vi++)
+	//	_visible[vi]._reconstruction /= std::max(1.0f, visibleDivs[vi]);
 
-	for (int hi = 0; hi < _hidden.size(); hi++)
-		_hidden[hi]._reconstruction /= std::max(1.0f, hiddenDivs[hi]);
+	//for (int hi = 0; hi < _hidden.size(); hi++)
+	//	_hidden[hi]._reconstruction /= std::max(1.0f, hiddenDivs[hi]);
 }
 
 void RSDR::reconstructFeedForward(const std::vector<float> &states, std::vector<float> &recon) {
@@ -208,8 +207,8 @@ void RSDR::reconstructFeedForward(const std::vector<float> &states, std::vector<
 		}
 	}
 
-	for (int vi = 0; vi < _visible.size(); vi++)
-		recon[vi] /= std::max(1.0f, visibleDivs[vi]);
+	//for (int vi = 0; vi < _visible.size(); vi++)
+	//	recon[vi] /= std::max(1.0f, visibleDivs[vi]);
 }
 
 void RSDR::learn(float learnFeedForward, float learnRecurrent, float learnLateral, float learnThreshold, float sparsity) {

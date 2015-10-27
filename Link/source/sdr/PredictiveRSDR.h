@@ -31,13 +31,13 @@ namespace sdr {
 
 			LayerDesc()
 				: _width(16), _height(16),
-				_receptiveRadius(16), _recurrentRadius(6), _lateralRadius(6), _predictiveRadius(7), _feedBackRadius(8),
-				_learnFeedForward(0.01f), _learnRecurrent(0.01f), _learnLateral(0.2f), _learnThreshold(0.01f),
+				_receptiveRadius(9), _recurrentRadius(6), _lateralRadius(6), _predictiveRadius(7), _feedBackRadius(8),
+				_learnFeedForward(0.02f), _learnRecurrent(0.02f), _learnLateral(0.2f), _learnThreshold(0.05f),
 				_learnFeedBack(0.01f), _learnPrediction(0.01f),
 				_subIterSettle(17), _subIterMeasure(5), _leak(0.1f),
 				_averageSurpriseDecay(0.01f),
 				_attentionFactor(4.0f),
-				_sparsity(0.005f)
+				_sparsity(0.01f)
 			{}
 		};
 
@@ -77,7 +77,7 @@ namespace sdr {
 		std::vector<float> _prediction;
 
 	public:
-		void createRandom(int inputWidth, int inputHeight, const std::vector<LayerDesc> &layerDescs, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, float initThreshold, std::mt19937 &generator);
+		void createRandom(int inputWidth, int inputHeight, const std::vector<LayerDesc> &layerDescs, float initMinWeight, float initMaxWeight, float initThreshold, std::mt19937 &generator);
 
 		void simStep(bool learn = true);
 
