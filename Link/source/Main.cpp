@@ -51,7 +51,7 @@ int main() {
 
 	sdr::PredictiveRSDR prsdr;
 
-	prsdr.createRandom(inputsRoot, inputsRoot, layerDescs, -0.01f, 0.01f, 0.01f, 0.05f, 0.1f, generator);
+	prsdr.createRandom(inputsRoot, inputsRoot, layerDescs, -0.01f, 0.01f, 0.0f, generator);
 
 	// ---------------------------- Game Loop -----------------------------
 

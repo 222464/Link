@@ -107,7 +107,7 @@ void PredictiveRSDR::simStep(bool learn) {
 		// Set inputs for next layer if there is one
 		if (l < _layers.size() - 1) {
 			for (int i = 0; i < _layers[l]._sdr.getNumHidden(); i++)
-				_layers[l + 1]._sdr.setVisibleInput(i, _layers[l]._sdr.getHiddenState(i));
+				_layers[l + 1]._sdr.setVisibleState(i, _layers[l]._sdr.getHiddenState(i));
 		}
 	}
 
