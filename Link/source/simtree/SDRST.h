@@ -41,7 +41,7 @@ private:
 
 		void add(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator, bool allowReAdd);
 
-		Vec* findMostSimilar(const std::vector<float> &vec, Node* &pNode, float &sim);
+		void findMostSimilar(const std::vector<float> &vec, Node* &pNode, Vec* &pMostSim, float &sim);
 	};
 	
 	std::unique_ptr<Node> _pRoot;

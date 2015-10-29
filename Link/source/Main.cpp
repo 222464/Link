@@ -53,7 +53,7 @@ int main() {
 	tree.create(10, generator);
 
 	for (int i = 0; i < testVecs.size(); i++)
-		tree.add(&vecs[i], 2, generator, 10);
+		tree.add(&vecs[i], 2, generator, 5);
 
 	float sim;
 

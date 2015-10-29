@@ -25,7 +25,7 @@ void SDRST::Node::add(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generato
 	
 }
 
-Vec* SDRST::Node::findMostSimilar(const std::vector<float> &vec, Node* &pNode, float &sim) {
+void SDRST::Node::findMostSimilar(const std::vector<float> &vec, Node* &pNode, Vec* &pMostSim, float &sim) {
 	pNode = nullptr;
 
 	if (_pParent != nullptr)
@@ -34,11 +34,18 @@ Vec* SDRST::Node::findMostSimilar(const std::vector<float> &vec, Node* &pNode, f
 	if (_occupants.empty() && _pLeft == nullptr && _pRight == nullptr) {
 		pNode = this;
 
-		return nullptr;
+		pMostSim = nullptr;
 	}
 
+	for (int i = 1; i < _occupants.size(); i++)
+		if (vec == _occupants[i]->_vec) {
+			pMostSim = _occupants[i];
+
+			return;
+		}
+
 	// Find closest occupant
-	float maxSim;
+	float maxSim = -999999.0f;
 	int maxSimIndex = -1;
 
 	if (!_occupants.empty()) {
@@ -56,6 +63,12 @@ Vec* SDRST::Node::findMostSimilar(const std::vector<float> &vec, Node* &pNode, f
 		}
 	}
 
+	if (maxSim > sim) {
+		sim = maxSim;
+
+		pMostSim = _occupants[maxSimIndex];
+	}
+
 	if (_pLeft != nullptr) {
 		pNode = this;
 
@@ -64,33 +77,27 @@ Vec* SDRST::Node::findMostSimilar(const std::vector<float> &vec, Node* &pNode, f
 
 		float simProtoRight = similarity(vec, _protoRight);
 
-		if (maxSimIndex != -1)
+		/*if (maxSimIndex != -1)
 			if (maxSim > simProtoLeft && maxSim > simProtoRight) {
 				sim = maxSim;
 
 				return _occupants[maxSimIndex];
-			}
+			}*/
 			
 		// Go down most similar route
-		if (simProtoLeft > simProtoRight) {
-			sim = simProtoLeft;
+		if (simProtoLeft > simProtoRight)
+			return _pLeft->findMostSimilar(vec, pNode, pMostSim, sim);
 
-			return _pLeft->findMostSimilar(vec, pNode, sim);
-		}
-
-		sim = simProtoRight;
-
-		return _pRight->findMostSimilar(vec, pNode, sim);
+		return _pRight->findMostSimilar(vec, pNode, pMostSim, sim);
 	}
 
-	if (maxSimIndex == -1)
-		return nullptr;
-	
+	if (maxSimIndex == -1) {
+		pMostSim = nullptr;
+
+		return;
+	}
+
 	pNode = this;
-
-	sim = maxSim;
-
-	return _occupants[maxSimIndex];
 }
 
 void SDRST::create(int vecSize, std::mt19937 &generator) {
@@ -104,11 +111,13 @@ void SDRST::create(int vecSize, std::mt19937 &generator) {
 void SDRST::addSub(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator) {
 	Node* pNode;
 
-	float mostSim;
+	float mostSim = -999999.0f;
 
-	Vec* pMostSim = _pRoot->findMostSimilar(pVec->_vec, pNode, mostSim);
+	Vec* pMostSim;
+	
+	_pRoot->findMostSimilar(pVec->_vec, pNode, pMostSim, mostSim);
 
-	if (pMostSim == nullptr) {
+	if (pNode == nullptr) {
 		_pRoot->_occupants.push_back(pVec);
 
 		_pRoot->_numOccupantsBelow++;
@@ -146,11 +155,15 @@ void SDRST::addSub(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator) 
 
 				Node* pLeftNode;
 
-				Vec* pMostSimLeft = pNode->_pLeft->findMostSimilar(pVec->_vec, pLeftNode, simLeft);
+				Vec* pMostSimLeft;
+					
+				pNode->_pLeft->findMostSimilar(pVec->_vec, pLeftNode, pMostSimLeft, simLeft);
 
 				Node* pRightNode;
 
-				Vec* pMostSimRight = pNode->_pRight->findMostSimilar(pVec->_vec, pRightNode, simRight);
+				Vec* pMostSimRight;
+				
+				pNode->_pRight->findMostSimilar(pVec->_vec, pRightNode, pMostSimRight, simRight);
 
 				pNode->_numOccupantsBelow++;
 
@@ -215,5 +228,9 @@ void SDRST::add(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator, int
 Vec* SDRST::findMostSimilar(const std::vector<float> &vec, float &sim) {
 	Node* pNode;
 
-	return _pRoot->findMostSimilar(vec, pNode, sim);
+	Vec* pMostSim;
+
+	_pRoot->findMostSimilar(vec, pNode, pMostSim, sim);
+
+	return pMostSim;
 }
