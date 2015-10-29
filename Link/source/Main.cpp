@@ -5,11 +5,15 @@
 
 #include <sdr/PredictiveRSDR.h>
 
+#include <simtree/SDRST.h>
+
 #include <time.h>
 #include <iostream>
 #include <random>
 
 #include <duktape/duktape.h>
+
+#include <assert.h>
 
 int main() {
 	sf::RenderWindow window;
@@ -23,6 +27,44 @@ int main() {
 	window.setVerticalSyncEnabled(true);
 
 	std::mt19937 generator(time(nullptr));
+
+	std::vector<std::vector<float>> testVecs(10);
+
+	testVecs[0] = { 0, 1, 0, 0, 0, 1, 0, 0, 1, 0 };
+	testVecs[1] = { 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 };
+	testVecs[2] = { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+	testVecs[3] = { 0, 1, 0, 1, 0, 1, 0, 0, 0, 0 };
+	testVecs[4] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
+	testVecs[5] = { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 };
+	testVecs[6] = { 0, 0, 0, 0, 0, 1, 0, 1, 1, 0 };
+	testVecs[7] = { 0, 1, 0, 0, 0, 1, 1, 0, 0, 0 };
+	testVecs[8] = { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
+	testVecs[9] = { 0, 1, 0, 1, 1, 0, 0, 0, 1, 0 };
+
+	std::vector<float> searchVec = { 0, 1, 0, 1, 1, 0, 0, 0, 1, 0 };
+
+	std::vector<Vec> vecs(testVecs.size());
+
+	for (int i = 0; i < testVecs.size(); i++)
+		vecs[i]._vec = testVecs[i];
+
+	SDRST tree;
+
+	tree.create(10, generator);
+
+	for (int i = 0; i < testVecs.size(); i++)
+		tree.add(&vecs[i], 2, generator, 10);
+
+	float sim;
+
+	Vec* pSim = tree.findMostSimilar(searchVec, sim);
+
+	assert(pSim != nullptr);
+
+	for (int i = 0; i < pSim->_vec.size(); i++)
+		std::cout << pSim->_vec[i] << " ";
+
+	std::cout << "Sim: " << sim << std::endl;
 
 	std::string test = "I once stated: Hold there, nobel knight, ye shall not cross this bridge. Then came a rebutal: You shallt not hinder my progression through this kingdom. Thou cannot prohibit my forward motion!";
 
