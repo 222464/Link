@@ -28,20 +28,18 @@ int main() {
 
 	std::mt19937 generator(time(nullptr));
 
-	std::vector<std::vector<float>> testVecs(10);
+	std::uniform_real_distribution<float> dist01(0.0f, 1.0f);
 
-	testVecs[0] = { 0, 1, 0, 0, 0, 1, 0, 0, 1, 0 };
-	testVecs[1] = { 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 };
-	testVecs[2] = { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
-	testVecs[3] = { 0, 1, 0, 1, 0, 1, 0, 0, 0, 0 };
-	testVecs[4] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
-	testVecs[5] = { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 };
-	testVecs[6] = { 0, 0, 0, 0, 0, 1, 0, 1, 1, 0 };
-	testVecs[7] = { 0, 1, 0, 0, 0, 1, 1, 0, 0, 0 };
-	testVecs[8] = { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
-	testVecs[9] = { 0, 1, 0, 1, 1, 0, 0, 0, 1, 0 };
+	std::vector<std::vector<float>> testVecs(1000);
 
-	std::vector<float> searchVec = { 0, 1, 0, 1, 1, 0, 0, 0, 1, 0 };
+	for (int i = 0; i < testVecs.size(); i++) {
+		testVecs[i].resize(10);
+
+		for (int j = 0; j < 10; j++)
+			testVecs[i][j] = dist01(generator) > 0.5f ? 1.0f : 0.0f;
+	}
+
+	std::vector<float> searchVec = { 1, 1, 0, 1, 0, 1, 0, 1, 0, 1 };
 
 	std::vector<Vec> vecs(testVecs.size());
 
@@ -53,7 +51,7 @@ int main() {
 	tree.create(10, generator);
 
 	for (int i = 0; i < testVecs.size(); i++)
-		tree.add(&vecs[i], 2, generator, 5);
+		tree.add(&vecs[i], 2, generator, 1);
 
 	float sim;
 

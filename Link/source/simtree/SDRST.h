@@ -33,13 +33,9 @@ private:
 
 		std::vector<Vec*> _occupants;
 
-		int _numOccupantsBelow;
-
 		Node()
-			: _pTree(nullptr), _pParent(nullptr), _isLeft(false), _numOccupantsBelow(0)
+			: _pTree(nullptr), _pParent(nullptr), _isLeft(false)
 		{}
-
-		void add(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator, bool allowReAdd);
 
 		void findMostSimilar(const std::vector<float> &vec, Node* &pNode, Vec* &pMostSim, float &sim);
 	};
@@ -50,7 +46,7 @@ private:
 
 	std::vector<Vec*> _reAddBuffer;
 
-	void addSub(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator);
+	void addSub(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator, bool allowReAdd);
 
 public:
 	void create(int vecSize, std::mt19937 &generator);

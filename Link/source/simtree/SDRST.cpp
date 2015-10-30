@@ -21,83 +21,61 @@ void randomPrototype(std::vector<float> &vec, std::mt19937 &generator) {
 		vec[i] = dist01(generator);
 }
 
-void SDRST::Node::add(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator, bool allowReAdd) {
-	
-}
-
 void SDRST::Node::findMostSimilar(const std::vector<float> &vec, Node* &pNode, Vec* &pMostSim, float &sim) {
-	pNode = nullptr;
+	pNode = this;
 
-	if (_pParent != nullptr)
-		sim = similarity(vec, _isLeft ? _pParent->_protoLeft : _pParent->_protoRight);
+	if (_pParent != nullptr) {
+		float thisSim = similarity(vec, _isLeft ? _pParent->_protoLeft : _pParent->_protoRight);
 
-	if (_occupants.empty() && _pLeft == nullptr && _pRight == nullptr) {
-		pNode = this;
-
-		pMostSim = nullptr;
+		if (thisSim > sim)
+			sim = thisSim;
 	}
 
-	for (int i = 1; i < _occupants.size(); i++)
+	if (_occupants.empty() && _pLeft == nullptr && _pRight == nullptr)
+		return;
+
+	for (int i = 0; i < _occupants.size(); i++)
 		if (vec == _occupants[i]->_vec) {
 			pMostSim = _occupants[i];
+
+			sim = similarity(vec, vec);
 
 			return;
 		}
 
 	// Find closest occupant
-	float maxSim = -999999.0f;
-	int maxSimIndex = -1;
-
 	if (!_occupants.empty()) {
-		maxSimIndex = 0;
-
-		maxSim = similarity(vec, _occupants.front()->_vec);
+		float maxSim = similarity(vec, _occupants.front()->_vec);
+		int maxSimIndex = 0;
 
 		for (int i = 1; i < _occupants.size(); i++) {
-			float sim = similarity(vec, _occupants[i]->_vec);
+			float s = similarity(vec, _occupants[i]->_vec);
 
-			if (sim > maxSim) {
-				maxSim = sim;
+			if (s > maxSim) {
+				maxSim = s;
 				maxSimIndex = i;
 			}
 		}
-	}
 
-	if (maxSim > sim) {
-		sim = maxSim;
+		if (maxSim > sim) {
+			sim = maxSim;
 
-		pMostSim = _occupants[maxSimIndex];
+			pMostSim = _occupants[maxSimIndex];
+		}
 	}
 
 	if (_pLeft != nullptr) {
-		pNode = this;
-
 		// Check prototypes
 		float simProtoLeft = similarity(vec, _protoLeft);
 
 		float simProtoRight = similarity(vec, _protoRight);
-
-		/*if (maxSimIndex != -1)
-			if (maxSim > simProtoLeft && maxSim > simProtoRight) {
-				sim = maxSim;
-
-				return _occupants[maxSimIndex];
-			}*/
 			
 		// Go down most similar route
 		if (simProtoLeft > simProtoRight)
-			return _pLeft->findMostSimilar(vec, pNode, pMostSim, sim);
-
-		return _pRight->findMostSimilar(vec, pNode, pMostSim, sim);
+			_pLeft->findMostSimilar(vec, pNode, pMostSim, sim);
+		else 
+			_pRight->findMostSimilar(vec, pNode, pMostSim, sim);
 	}
-
-	if (maxSimIndex == -1) {
-		pMostSim = nullptr;
-
-		return;
-	}
-
-	pNode = this;
 }
 
 void SDRST::create(int vecSize, std::mt19937 &generator) {
@@ -108,8 +86,8 @@ void SDRST::create(int vecSize, std::mt19937 &generator) {
 	_pRoot->_pTree = this;
 }
 
-void SDRST::addSub(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator) {
-	Node* pNode;
+void SDRST::addSub(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator, bool allowReAdd) {
+	Node* pNode = nullptr;
 
 	float mostSim = -999999.0f;
 
@@ -120,8 +98,6 @@ void SDRST::addSub(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator) 
 	if (pNode == nullptr) {
 		_pRoot->_occupants.push_back(pVec);
 
-		_pRoot->_numOccupantsBelow++;
-
 		return;
 	}
 
@@ -130,19 +106,23 @@ void SDRST::addSub(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator) 
 	// Add to most similar if there is room, otherwise to children (make children if there are none)
 	while (!added) {
 		if (pNode->_occupants.size() < maxOccupantsPerNode) {
-			for (int i = 0; i < pNode->_occupants.size(); i++)
-				_reAddBuffer.push_back(pNode->_occupants[i]);
+			int prevSize = pNode->_occupants.size();
+
+			if (allowReAdd) {
+				for (int i = 0; i < pNode->_occupants.size(); i++)
+					_reAddBuffer.push_back(pNode->_occupants[i]);
+
+				pNode->_occupants.clear();
+			}
 
 			pNode->_occupants.push_back(pVec);
-
-			pNode->_numOccupantsBelow++;
 
 			// Update similarity
 			if (pNode->_pParent != nullptr) {
 				if (pNode->_isLeft)
-					moveTowards(pVec->_vec, pNode->_pParent->_protoLeft, 1.0f / pNode->_numOccupantsBelow);
+					moveTowards(pVec->_vec, pNode->_pParent->_protoLeft, 1.0f / (1 + prevSize));
 				else
-					moveTowards(pVec->_vec, pNode->_pParent->_protoRight, 1.0f / pNode->_numOccupantsBelow);
+					moveTowards(pVec->_vec, pNode->_pParent->_protoRight, 1.0f / (1 + prevSize));
 			}
 
 			added = true;
@@ -153,19 +133,17 @@ void SDRST::addSub(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator) 
 				float simLeft;
 				float simRight;
 
-				Node* pLeftNode;
+				Node* pLeftNode = nullptr;
 
-				Vec* pMostSimLeft;
+				Vec* pMostSimLeft = nullptr;
 					
 				pNode->_pLeft->findMostSimilar(pVec->_vec, pLeftNode, pMostSimLeft, simLeft);
 
-				Node* pRightNode;
+				Node* pRightNode = nullptr;
 
-				Vec* pMostSimRight;
+				Vec* pMostSimRight = nullptr;
 				
 				pNode->_pRight->findMostSimilar(pVec->_vec, pRightNode, pMostSimRight, simRight);
-
-				pNode->_numOccupantsBelow++;
 
 				if (simLeft > simRight) {
 					pNode = pLeftNode;
@@ -191,22 +169,13 @@ void SDRST::addSub(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator) 
 				pNode->_pRight->_pTree = this;
 				pNode->_pRight->_pParent = pNode;
 
-				pNode->_protoLeft.resize(pVec->_vec.size());
-
-				randomPrototype(pNode->_protoLeft, generator);
-
-				pNode->_protoRight.resize(pVec->_vec.size());
-
-				randomPrototype(pNode->_protoRight, generator);
-
 				// Left is new, right is original
-				pNode->_numOccupantsBelow++;
-				pNode->_pLeft->_numOccupantsBelow++;
-
 				pNode->_pLeft->_occupants.push_back(pVec);		
 
 				pNode->_protoLeft = pVec->_vec;
 				pNode->_protoRight = pVec->_vec;
+
+				pNode = pNode->_pLeft.get();
 
 				added = true;
 			}
@@ -215,14 +184,20 @@ void SDRST::addSub(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator) 
 }
 
 void SDRST::add(Vec* pVec, int maxOccupantsPerNode, std::mt19937 &generator, int balanceIter) {
-	addSub(pVec, maxOccupantsPerNode, generator);
-	
+	_reAddBuffer.clear();
+
+	_reAddBuffer.push_back(pVec);
+
 	for (int iter = 0; iter < balanceIter; iter++) {
-		for (int i = 0; i < _reAddBuffer.size(); i++)
-			addSub(_reAddBuffer[i], maxOccupantsPerNode, generator);
+		std::vector<Vec*> reAddCopy = _reAddBuffer;
 
 		_reAddBuffer.clear();
+
+		for (int i = 0; i < reAddCopy.size(); i++)
+			addSub(reAddCopy[i], maxOccupantsPerNode, generator, iter != (balanceIter - 1));
 	}
+
+	_reAddBuffer.clear();
 }
 
 Vec* SDRST::findMostSimilar(const std::vector<float> &vec, float &sim) {
