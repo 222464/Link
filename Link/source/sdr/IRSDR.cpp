@@ -89,7 +89,7 @@ void IRSDR::createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, i
 	}
 }
 
-void IRSDR::activate(int iter, float stepSize, float lambda) {
+void IRSDR::activate(int iter, float stepSize, float lambda, float hiddenDecay) {
 	for (int hi = 0; hi < _hidden.size(); hi++) {
 		float sum = 0.0f;
 
@@ -127,7 +127,7 @@ void IRSDR::activate(int iter, float stepSize, float lambda) {
 			//-lambda * _hidden[hi]._state / std::sqrt(_hidden[hi]._state * _hidden[hi]._state + epsilon)
 			//_hidden[hi]._state += stepSize * (sum - lambda * _hidden[hi]._state / std::sqrt(_hidden[hi]._state * _hidden[hi]._state + epsilon)) - hiddenDecay * _hidden[hi]._state;
 		
-			_hidden[hi]._state += stepSize * sum;
+			_hidden[hi]._state += stepSize * (sum + _hidden[hi]._boost);
 		
 			float r = _hidden[hi]._state - stepSize * lambda * (_hidden[hi]._state > 0.0f ? 1.0f : -1.0f);
 
@@ -216,7 +216,7 @@ void IRSDR::reconstructFeedForward(const std::vector<float> &states, std::vector
 	//	recon[vi] /= std::max(1.0f, visibleDivs[vi]);
 }
 
-void IRSDR::learn(float learnFeedForward, float learnRecurrent, float gamma) {
+void IRSDR::learn(float learnFeedForward, float learnRecurrent, float learnBoost, float boostSparsity, float weightDecay) {
 	std::vector<float> visibleErrors(_visible.size(), 0.0f);
 	std::vector<float> hiddenErrors(_hidden.size(), 0.0f);
 
@@ -227,12 +227,16 @@ void IRSDR::learn(float learnFeedForward, float learnRecurrent, float gamma) {
 		hiddenErrors[hi] = _hidden[hi]._statePrev - _hidden[hi]._reconstruction;
 
 	for (int hi = 0; hi < _hidden.size(); hi++) {
+		float learn = _hidden[hi]._state;// > 0.0f ? 1.0f : 0.0f;
+
 		//if (_hidden[hi]._activation != 0.0f)
 		for (int ci = 0; ci < _hidden[hi]._feedForwardConnections.size(); ci++)
-			_hidden[hi]._feedForwardConnections[ci]._weight += learnFeedForward * _hidden[hi]._state * visibleErrors[_hidden[hi]._feedForwardConnections[ci]._index] - gamma * _hidden[hi]._feedForwardConnections[ci]._weight;
+			_hidden[hi]._feedForwardConnections[ci]._weight += learnFeedForward * learn * visibleErrors[_hidden[hi]._feedForwardConnections[ci]._index] - weightDecay * _hidden[hi]._feedForwardConnections[ci]._weight;
 
 		for (int ci = 0; ci < _hidden[hi]._recurrentConnections.size(); ci++)
-			_hidden[hi]._recurrentConnections[ci]._weight += learnRecurrent * _hidden[hi]._state * hiddenErrors[_hidden[hi]._recurrentConnections[ci]._index] - gamma * _hidden[hi]._recurrentConnections[ci]._weight;
+			_hidden[hi]._recurrentConnections[ci]._weight += learnRecurrent * learn * hiddenErrors[_hidden[hi]._recurrentConnections[ci]._index] - weightDecay * _hidden[hi]._recurrentConnections[ci]._weight;
+	
+		_hidden[hi]._boost += (boostSparsity - learn) * learnBoost;
 	}
 }
 

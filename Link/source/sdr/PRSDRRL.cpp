@@ -156,7 +156,7 @@ void PRSDRRL::createRandom(int inputWidth, int inputHeight, int inputFeedBackRad
 void PRSDRRL::simStep(float reward, std::mt19937 &generator, bool learn) {
 	// Feature extraction
 	for (int l = 0; l < _layers.size(); l++) {
-		_layers[l]._sdr.activate(_layerDescs[l]._sdrIter, _layerDescs[l]._sdrStepSize, _layerDescs[l]._sdrLambda);
+		//_layers[l]._sdr.activate(_layerDescs[l]._sdrIter, _layerDescs[l]._sdrStepSize, _layerDescs[l]._sdrLambda);
 
 		_layers[l]._sdr.reconstruct();
 
@@ -270,8 +270,8 @@ void PRSDRRL::simStep(float reward, std::mt19937 &generator, bool learn) {
 	}
 
 	for (int l = 0; l < _layers.size(); l++) {
-		if (learn)
-			_layers[l]._sdr.learn(_layerDescs[l]._learnFeedForward, _layerDescs[l]._learnRecurrent, _layerDescs[l]._sdrWeightDecay);
+		//if (learn)
+		//	_layers[l]._sdr.learn(_layerDescs[l]._learnFeedForward, _layerDescs[l]._learnRecurrent, _layerDescs[l]._sdrWeightDecay);
 
 		_layers[l]._sdr.stepEnd();
 
