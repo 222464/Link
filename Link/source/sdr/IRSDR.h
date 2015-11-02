@@ -4,7 +4,7 @@
 #include <random>
 
 namespace sdr {
-	class RSDR {
+	class IRSDR {
 	public:
 		struct Connection {
 			unsigned short _index;
@@ -14,20 +14,16 @@ namespace sdr {
 
 		struct HiddenNode {
 			std::vector<Connection> _feedForwardConnections;
-			std::vector<unsigned short> _lateralConnections;
 			std::vector<Connection> _recurrentConnections;
-
-			float _threshold;
 
 			float _state;
 			float _statePrev;
-
-			float _activation;
+			float _input;
 
 			float _reconstruction;
 
 			HiddenNode()
-				: _state(0.0f), _statePrev(0.0f), _activation(0.0f), _reconstruction(0.0f)
+				: _state(0.0f), _statePrev(0.0f), _reconstruction(0.0f), _input(0.0f)
 			{}
 		};
 
@@ -44,7 +40,6 @@ namespace sdr {
 		int _visibleWidth, _visibleHeight;
 		int _hiddenWidth, _hiddenHeight;
 		int _receptiveRadius;
-		int _inhibitionRadius;
 		int _recurrentRadius;
 
 		std::vector<VisibleNode> _visible;
@@ -55,14 +50,13 @@ namespace sdr {
 			return 1.0f / (1.0f + std::exp(-x));
 		}
 
-		void createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, int hiddenHeight, int receptiveRadius, int inhibitionRadius, int recurrentRadius, float initMinWeight, float initMaxWeight, float initThreshold, std::mt19937 &generator);
+		void createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, int hiddenHeight, int receptiveRadius, int recurrentRadius, float initMinWeight, float initMaxWeight, std::mt19937 &generator);
 
-		void activate(float sparsity);
-		void inhibit(float sparsity, const std::vector<float> &activations, std::vector<float> &states);
+		void activate(int iter, float stepSize, float lambda);
 		void reconstruct();
+		void reconstruct(const std::vector<float> &states, std::vector<float> &reconHidden, std::vector<float> &reconVisible);
 		void reconstructFeedForward(const std::vector<float> &states, std::vector<float> &recon);
-		void learn(float learnFeedForward, float learnRecurrent, float learnLateral, float learnThreshold, float sparsity);
-		void learn(const std::vector<float> &attentions, float learnFeedForward, float learnRecurrent, float learnLateral, float learnThreshold, float sparsity);
+		void learn(float learnFeedForward, float learnRecurrent, float weightDecay);
 		void stepEnd();
 
 		void setVisibleState(int index, float value) {
@@ -95,14 +89,6 @@ namespace sdr {
 
 		float getHiddenState(int x, int y) const {
 			return _hidden[x + y * _hiddenWidth]._state;
-		}
-
-		float getHiddenActivation(int index) const {
-			return _hidden[index]._activation;
-		}
-
-		float getHiddenActivation(int x, int y) const {
-			return _hidden[x + y * _hiddenWidth]._activation;
 		}
 
 		float getHiddenStatePrev(int index) const {
@@ -147,10 +133,6 @@ namespace sdr {
 
 		int getReceptiveRadius() const {
 			return _receptiveRadius;
-		}
-
-		int getInhbitionRadius() const {
-			return _inhibitionRadius;
 		}
 
 		float getVHWeight(int hi, int ci) const {

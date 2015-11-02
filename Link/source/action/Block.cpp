@@ -6,7 +6,7 @@
 
 #include <action/ActionFunctions.h>
 
-void action::Block::create(sdr::PredictiveRSDR& prsdr, const std::string& code, int numLearnIterations) {
+void action::Block::create(sdr::IPredictiveRSDR& prsdr, const std::string& code, int numLearnIterations) {
 	_code = code;
 
 	std::string possibleChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+`-=[]\\{}|;':\",./<>? \r\n";
@@ -26,7 +26,7 @@ void action::Block::create(sdr::PredictiveRSDR& prsdr, const std::string& code, 
 	}
 }
 
-void action::Block::createFromFile(sdr::PredictiveRSDR& prsdr, const std::string& path, int numLearnIterations) {
+void action::Block::createFromFile(sdr::IPredictiveRSDR& prsdr, const std::string& path, int numLearnIterations) {
 	std::ifstream ifs(path);
 	_code.assign(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
 	ifs.close();

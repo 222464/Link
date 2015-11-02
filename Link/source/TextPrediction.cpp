@@ -1,5 +1,9 @@
 #include "Settings.h"
 
+#if EXPERIMENT_SELECTION == EXPERIMENT_TEXT_PREDICTION
+
+#include "Settings.h"
+
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
@@ -30,16 +34,16 @@ int main() {
 
 	std::uniform_real_distribution<float> dist01(0.0f, 1.0f);
 
-	std::vector<std::vector<float>> testVecs(1000);
+	std::vector<std::vector<float>> testVecs(16);
 
 	for (int i = 0; i < testVecs.size(); i++) {
-		testVecs[i].resize(10);
+		testVecs[i].resize(4);
 
-		for (int j = 0; j < 10; j++)
-			testVecs[i][j] = dist01(generator) > 0.5f ? 1.0f : 0.0f;
+		for (int j = 0; j < 4; j++)
+			testVecs[i][j] = static_cast<float>((i >> j) & 0x00000001);;
 	}
 
-	std::vector<float> searchVec = { 1, 1, 0, 1, 0, 1, 0, 1, 0, 1 };
+	std::vector<float> searchVec = { 1, 1, 0, 1 };
 
 	std::vector<Vec> vecs(testVecs.size());
 
@@ -48,7 +52,7 @@ int main() {
 
 	SDRST tree;
 
-	tree.create(10, generator);
+	tree.create(4, generator);
 
 	for (int i = 0; i < testVecs.size(); i++)
 		tree.add(&vecs[i], 2, generator, 1);
@@ -80,18 +84,18 @@ int main() {
 
 	std::vector<sdr::PredictiveRSDR::LayerDesc> layerDescs(3);
 
-	layerDescs[0]._width = 32;
-	layerDescs[0]._height = 32;
+	layerDescs[0]._width = 16;
+	layerDescs[0]._height = 16;
 
-	layerDescs[1]._width = 16;
-	layerDescs[1]._height = 16;
+	layerDescs[1]._width = 12;
+	layerDescs[1]._height = 12;
 
 	layerDescs[2]._width = 8;
 	layerDescs[2]._height = 8;
 
 	sdr::PredictiveRSDR prsdr;
 
-	prsdr.createRandom(inputsRoot, inputsRoot, layerDescs, -0.01f, 0.01f, 0.0f, generator);
+	prsdr.createRandom(inputsRoot, inputsRoot, 16, layerDescs, -0.01f, 0.01f, 0.01f, 0.02f, 0.1f, generator);
 
 	// ---------------------------- Game Loop -----------------------------
 
@@ -182,3 +186,5 @@ int main() {
 
 	return 0;
 }
+
+#endif
