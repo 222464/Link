@@ -38,8 +38,8 @@ namespace sdr {
 				: _width(16), _height(16),
 				_receptiveRadius(8), _recurrentRadius(6), _predictiveRadius(6), _feedBackRadius(8),
 				_learnFeedForward(0.001f), _learnRecurrent(0.001f),
-				_learnFeedBack(0.2f), _learnPrediction(0.2f),
-				_sdrIter(30), _sdrStepSize(0.04f), _sdrLambda(0.95f), _sdrBaselineDecay(0.01f), _sdrSensitivity(4.0f), _sdrHiddenDecay(0.01f), _sdrWeightDecay(0.0f),
+				_learnFeedBack(0.1f), _learnPrediction(0.1f),
+				_sdrIter(30), _sdrStepSize(0.1f), _sdrLambda(0.95f), _sdrBaselineDecay(0.01f), _sdrSensitivity(4.0f), _sdrHiddenDecay(0.01f), _sdrWeightDecay(0.0f),
 				_sdrBoostSparsity(0.2f), _sdrLearnBoost(0.005f), _sdrNoise(0.01f),
 				_averageSurpriseDecay(0.01f),
 				_attentionFactor(2.0f)
@@ -86,7 +86,7 @@ namespace sdr {
 		float _learnInputFeedBack;
 
 		IPredictiveRSDR()
-			: _learnInputFeedBack(0.2f)
+			: _learnInputFeedBack(0.1f)
 		{}
 
 		void createRandom(int inputWidth, int inputHeight, int inputFeedBackRadius, const std::vector<LayerDesc> &layerDescs, float initMinWeight, float initMaxWeight, float initThreshold, std::mt19937 &generator);

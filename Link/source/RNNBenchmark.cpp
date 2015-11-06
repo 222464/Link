@@ -131,8 +131,6 @@ int main() {
 				error += std::pow(prsdr.getPrediction(j) - timeSeries[i][j], 2);
 
 				prsdr.setInput(j, timeSeries[i][j]);
-
-				std::cout << prsdr.getPrediction(j) << " ";
 			}
 
 			avgError = (1.0f - avgErrorDecay) * avgError + avgErrorDecay * error;
