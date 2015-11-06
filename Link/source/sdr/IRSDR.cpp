@@ -94,7 +94,7 @@ void IRSDR::createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, i
 	}
 }
 
-void IRSDR::pL(const std::vector<float> &states, float stepSize, float lambda, float hiddenDecay) {
+void IRSDR::pL(const std::vector<float> &states, float stepSize, float hiddenDecay) {
 	std::vector<float> visibleErrors(_visible.size(), 0.0f);
 	std::vector<float> hiddenErrors(_hidden.size(), 0.0f);
 
@@ -125,7 +125,7 @@ void IRSDR::pL(const std::vector<float> &states, float stepSize, float lambda, f
 	}
 }
 
-void IRSDR::activate(int iter, float stepSize, float lambda, float hiddenDecay, float noise, std::mt19937 &generator) {
+void IRSDR::activate(int iter, float stepSize, float hiddenDecay, float noise, std::mt19937 &generator) {
 	std::vector<float> y(_hidden.size());
 	std::vector<float> t(_hidden.size());
 	std::vector<float> tPrev(_hidden.size(), 0.0f);
@@ -152,7 +152,7 @@ void IRSDR::activate(int iter, float stepSize, float lambda, float hiddenDecay, 
 	for (int i = 0; i < iter; i++) {
 		reconstruct();
 
-		pL(y, stepSize, lambda, hiddenDecay);
+		pL(y, stepSize, hiddenDecay);
 
 		for (int hi = 0.0f; hi < t.size(); hi++)
 			t[hi] = 0.5f * (1.0f + std::sqrt(1.0f + 4.0f * tPrev[hi] * tPrev[hi]));
@@ -168,7 +168,7 @@ void IRSDR::activate(int iter, float stepSize, float lambda, float hiddenDecay, 
 
 	reconstruct();
 
-	pL(y, stepSize, lambda, hiddenDecay);
+	pL(y, stepSize, hiddenDecay);
 
 	reconstruct();
 }
@@ -253,7 +253,7 @@ void IRSDR::learn(float learnFeedForward, float learnRecurrent, float learnBoost
 	}
 }
 
-void IRSDR::learn(const std::vector<float> &predictionErrors, float lambda, float learnFeedForward, float learnRecurrent, float learnBoost, float boostSparsity, float weightDecay, float maxWeightDelta) {
+void IRSDR::learn(const std::vector<float> &predictionErrors, float lambda, float baselineDecay, float sensitivity, float learnFeedForward, float learnRecurrent, float learnBoost, float boostSparsity, float weightDecay, float maxWeightDelta) {
 	std::vector<float> visibleErrors(_visible.size(), 0.0f);
 	std::vector<float> hiddenErrors(_hidden.size(), 0.0f);
 
@@ -266,7 +266,11 @@ void IRSDR::learn(const std::vector<float> &predictionErrors, float lambda, floa
 	for (int hi = 0; hi < _hidden.size(); hi++) {
 		float learn = _hidden[hi]._state;
 
-		float reward = std::exp(-predictionErrors[hi] * predictionErrors[hi]);
+		float error2 = predictionErrors[hi] * predictionErrors[hi];
+		
+		float reward = sigmoid(sensitivity * (_hidden[hi]._baseline - error2));
+
+		_hidden[hi]._baseline = (1.0f - baselineDecay) * _hidden[hi]._baseline + baselineDecay * error2;
 
 		//if (_hidden[hi]._activation != 0.0f)
 		for (int ci = 0; ci < _hidden[hi]._feedForwardConnections.size(); ci++) {
@@ -278,7 +282,7 @@ void IRSDR::learn(const std::vector<float> &predictionErrors, float lambda, floa
 		}
 
 		for (int ci = 0; ci < _hidden[hi]._recurrentConnections.size(); ci++) {
-			float delta = learnFeedForward * reward * _hidden[hi]._recurrentConnections[ci]._trace - weightDecay * _hidden[hi]._recurrentConnections[ci]._weight;
+			float delta = learnRecurrent * reward * _hidden[hi]._recurrentConnections[ci]._trace - weightDecay * _hidden[hi]._recurrentConnections[ci]._weight;
 
 			_hidden[hi]._recurrentConnections[ci]._weight += std::min(maxWeightDelta, std::max(-maxWeightDelta, delta));
 
