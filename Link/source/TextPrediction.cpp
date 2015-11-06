@@ -7,13 +7,14 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
-#include <sdr/PredictiveRSDR.h>
+#include <sdr/IPredictiveRSDR.h>
 
 #include <simtree/SDRST.h>
 
 #include <time.h>
 #include <iostream>
 #include <random>
+#include <fstream>
 
 #include <duktape/duktape.h>
 
@@ -34,41 +35,13 @@ int main() {
 
 	std::uniform_real_distribution<float> dist01(0.0f, 1.0f);
 
-	std::vector<std::vector<float>> testVecs(16);
+	std::ifstream fromFile("corpus.txt");
 
-	for (int i = 0; i < testVecs.size(); i++) {
-		testVecs[i].resize(4);
-
-		for (int j = 0; j < 4; j++)
-			testVecs[i][j] = static_cast<float>((i >> j) & 0x00000001);;
-	}
-
-	std::vector<float> searchVec = { 1, 1, 0, 1 };
-
-	std::vector<Vec> vecs(testVecs.size());
-
-	for (int i = 0; i < testVecs.size(); i++)
-		vecs[i]._vec = testVecs[i];
-
-	SDRST tree;
-
-	tree.create(4, generator);
-
-	for (int i = 0; i < testVecs.size(); i++)
-		tree.add(&vecs[i], 2, generator, 1);
-
-	float sim;
-
-	Vec* pSim = tree.findMostSimilar(searchVec, sim);
-
-	assert(pSim != nullptr);
-
-	for (int i = 0; i < pSim->_vec.size(); i++)
-		std::cout << pSim->_vec[i] << " ";
-
-	std::cout << "Sim: " << sim << std::endl;
-
-	std::string test = "I once stated: Hold there, nobel knight, ye shall not cross this bridge. Then came a rebutal: You shallt not hinder my progression through this kingdom. Thou cannot prohibit my forward motion!";
+	fromFile.seekg(0, std::ios::end);
+	size_t size = fromFile.tellg();
+	std::string test(size, ' ');
+	fromFile.seekg(0);
+	fromFile.read(&test[0], size);
 
 	int minimum = 255;
 	int maximum = 0;
@@ -82,7 +55,7 @@ int main() {
 
 	int inputsRoot = std::ceil(std::sqrt(static_cast<float>(numInputs)));
 
-	std::vector<sdr::PredictiveRSDR::LayerDesc> layerDescs(3);
+	std::vector<sdr::IPredictiveRSDR::LayerDesc> layerDescs(3);
 
 	layerDescs[0]._width = 16;
 	layerDescs[0]._height = 16;
@@ -93,9 +66,9 @@ int main() {
 	layerDescs[2]._width = 8;
 	layerDescs[2]._height = 8;
 
-	sdr::PredictiveRSDR prsdr;
+	sdr::IPredictiveRSDR prsdr;
 
-	prsdr.createRandom(inputsRoot, inputsRoot, 16, layerDescs, -0.01f, 0.01f, 0.01f, 0.02f, 0.1f, generator);
+	prsdr.createRandom(inputsRoot, inputsRoot, 16, layerDescs, -0.01f, 0.01f, 0.0f, generator);
 
 	// ---------------------------- Game Loop -----------------------------
 
@@ -156,7 +129,7 @@ int main() {
 
 		prsdr.setInput(index, 1.0f);
 
-		prsdr.simStep();
+		prsdr.simStep(generator);
 
 		int predIndex = 0;
 

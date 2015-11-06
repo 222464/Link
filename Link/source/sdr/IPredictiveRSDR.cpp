@@ -135,10 +135,10 @@ void IPredictiveRSDR::createRandom(int inputWidth, int inputHeight, int inputFee
 	}
 }
 
-void IPredictiveRSDR::simStep(bool learn) {
+void IPredictiveRSDR::simStep(std::mt19937 &generator, bool learn) {
 	// Feature extraction
 	for (int l = 0; l < _layers.size(); l++) {
-		_layers[l]._sdr.activate(_layerDescs[l]._sdrIter, _layerDescs[l]._sdrStepSize, _layerDescs[l]._sdrLambda, _layerDescs[l]._sdrHiddenDecay);
+		_layers[l]._sdr.activate(_layerDescs[l]._sdrIter, _layerDescs[l]._sdrStepSize, _layerDescs[l]._sdrLambda, _layerDescs[l]._sdrHiddenDecay, _layerDescs[l]._sdrNoise, generator);
 
 		// Set inputs for next layer if there is one
 		if (l < _layers.size() - 1) {
@@ -203,14 +203,14 @@ void IPredictiveRSDR::simStep(bool learn) {
 			float predictionError = _layers.front()._sdr.getVisibleState(pi) - p._statePrev;
 
 			for (int ci = 0; ci < p._feedBackConnections.size(); ci++)
-				p._feedBackConnections[ci]._weight += _learnInputFeedBack * predictionError * _layers.front()._sdr.getHiddenStatePrev(p._feedBackConnections[ci]._index);// _layers.front()._predictionNodes[p._feedBackConnections[ci]._index]._statePrev;
+				p._feedBackConnections[ci]._weight += _learnInputFeedBack * predictionError * _layers.front()._predictionNodes[p._feedBackConnections[ci]._index]._statePrev;
 		}
 
 		float activation = 0.0f;
 
 		// Feed Back
 		for (int ci = 0; ci < p._feedBackConnections.size(); ci++)
-			activation += p._feedBackConnections[ci]._weight * _layers.front()._sdr.getHiddenState(p._feedBackConnections[ci]._index); //_layers.front()._predictionNodes[p._feedBackConnections[ci]._index]._state;
+			activation += p._feedBackConnections[ci]._weight * _layers.front()._predictionNodes[p._feedBackConnections[ci]._index]._state;
 
 		p._state = p._activation = activation;
 	}

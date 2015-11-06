@@ -5,7 +5,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
-#include <sdr/PredictiveRSDR.h>
+#include <sdr/IPredictiveRSDR.h>
 
 #include <simtree/SDRST.h>
 
@@ -68,18 +68,21 @@ int main() {
 
 	// Training
 	const float sparsity = 0.1f;
-	const float lff = 0.02f;
-	const float ll = 0.02f;
-	const float lt = 0.02f;
-	const int siter = 17;
-	const float sAlpha = 0.1f;
+	const float lff = 0.2f;
+	const float ll = 0.2f;
+	const float lt = 0.1f;
+	const int siter = 30;
+	const float sAlpha = 0.05f;
+	const float sLambda = 0.4f;
+	const float sHiddenDecay = 0.01f;
+	const float sWeightDecay = 0.0001f;
 
-	std::vector<sdr::RSDR> sdrs(4);
+	std::vector<sdr::IRSDR> sdrs(4);
 
-	sdrs[0].createRandom(96, 96, 48, 48, 10, 5, -1, -0.001f, 0.001f, 0.0f, generator);
-	sdrs[1].createRandom(48, 48, 32, 32, 10, 5, -1, -0.001f, 0.001f, 0.0f, generator);
-	sdrs[2].createRandom(32, 32, 24, 24, 10, 5, -1, -0.001f, 0.001f, 0.0f, generator);
-	sdrs[3].createRandom(24, 24, 16, 16, 10, 5, -1, -0.001f, 0.001f, 0.0f, generator);
+	sdrs[0].createRandom(96, 96, 48, 48, 8, -1, -0.001f, 0.001f, generator);
+	sdrs[1].createRandom(48, 48, 32, 32, 8, -1, -0.001f, 0.001f, generator);
+	sdrs[2].createRandom(32, 32, 24, 24, 8, -1, -0.001f, 0.001f, generator);
+	sdrs[3].createRandom(24, 24, 16, 16, 8, -1, -0.001f, 0.001f, generator);
 
 	std::ifstream fromFile("resources/stl10/train_X.bin", std::ios::binary);
 
@@ -92,7 +95,7 @@ int main() {
 
 	int lastIndex = 0;
 
-	for (int iter = 0; iter < 200; iter++) {
+	for (int iter = 0; iter < 100; iter++) {
 		int index = entryDist(generator);
 
 		STLEntry e;
@@ -108,9 +111,8 @@ int main() {
 				sdrs[0].setVisibleState(i, grey);
 			}
 
-		sdrs[0].activate(siter, sAlpha, sparsity);
-		sdrs[0].reconstruct();
-		sdrs[0].learn(lff, 0.0f, ll, lt, sparsity);
+		sdrs[0].activate(siter, sAlpha, sLambda, sHiddenDecay, 0.01f, generator);
+		sdrs[0].learn(lff, 0.0f, lt, sparsity, sWeightDecay, 0.1f);
 
 		for (int l = 1; l < sdrs.size(); l++) {
 			int vs = sdrs[l].getVisibleWidth() * sdrs[l].getVisibleHeight();
@@ -118,9 +120,8 @@ int main() {
 			for (int i = 0; i < vs; i++)
 				sdrs[l].setVisibleState(i, sdrs[l - 1].getHiddenState(i));
 
-			sdrs[l].activate(siter, sAlpha, sparsity);
-			sdrs[l].reconstruct();
-			sdrs[l].learn(lff, 0.0f, ll, lt, sparsity);
+			sdrs[l].activate(siter, sAlpha, sLambda, sHiddenDecay, 0.01f, generator);
+			sdrs[l].learn(lff, 0.0f, lt, sparsity, sWeightDecay, 0.1f);
 		}
 
 		VecAndEntry vae;
@@ -144,8 +145,8 @@ int main() {
 	std::vector<float> randSDR(sdrs.back().getHiddenWidth() * sdrs.back().getHiddenHeight(), 0.0f);
 
 	for (int i = 0; i < randSDR.size(); i++)
-		if (dist01(generator) < sparsity)
-			randSDR[i] = 1.0f;// sdrs.back().getHiddenState(i);
+		//if (dist01(generator) < sparsity)
+			randSDR[i] = sdrs.back().getHiddenState(i);
 
 	std::vector<float> reconSDR = randSDR;
 
@@ -155,8 +156,8 @@ int main() {
 		sdrs[l].reconstructFeedForward(reconSDR, recon);
 
 		if (l != 0) {
-			sdrs[l - 1].inhibit(sparsity, recon, reconSDR);
-			//reconSDR = recon;
+			//sdrs[l - 1].inhibit(sparsity, recon, reconSDR);
+			reconSDR = recon;
 		}
 		else
 			reconSDR = recon;
@@ -178,12 +179,12 @@ int main() {
 	// Find closest entry
 	float sim;
 
-	VecAndEntry* pE = static_cast<VecAndEntry*>(tree.findMostSimilar(randSDR, sim));
+	//VecAndEntry* pE = static_cast<VecAndEntry*>(tree.findMostSimilar(randSDR, sim));
 
 	STLEntry e;
 
-	getSTLImage(fromFile, e, pE->_index);
-	std::cout << pE->_index << std::endl;
+	getSTLImage(fromFile, e, 0);// pE->_index);
+	//std::cout << pE->_index << std::endl;
 	sf::Image img2;
 
 	img2.create(sdrs[0].getVisibleWidth(), sdrs[0].getVisibleHeight());

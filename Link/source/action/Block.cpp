@@ -21,7 +21,7 @@ void action::Block::create(sdr::IPredictiveRSDR& prsdr, const std::string& code,
 
 			prsdr.setInput(possibleChars[possibleChars.find_first_of(_code[q])], 1.0f);
 
-			prsdr.simStep();
+			//prsdr.simStep();
 		}
 	}
 }
@@ -43,7 +43,7 @@ void action::Block::createFromFile(sdr::IPredictiveRSDR& prsdr, const std::strin
 
 			prsdr.setInput(possibleChars[possibleChars.find_first_of(_code[q])], 1.0f);
 
-			prsdr.simStep();
+			//prsdr.simStep();
 		}
 	}
 }
