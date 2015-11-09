@@ -90,7 +90,7 @@ int main() {
 		}
 	}
 
-	timeSeries.clear();
+	/*timeSeries.clear();
 
 	timeSeries.resize(10);
 	timeSeries[0] = { 0.0f, 1.0f, 0.0f };
@@ -102,7 +102,7 @@ int main() {
 	timeSeries[6] = { 0.0f, 0.0f, 0.0f };
 	timeSeries[7] = { 0.0f, 0.0f, 0.0f };
 	timeSeries[8] = { 0.0f, 1.0f, 0.0f };
-	timeSeries[9] = { 0.0f, 1.0f, 1.0f };
+	timeSeries[9] = { 0.0f, 1.0f, 1.0f };*/
 
 	std::vector<sdr::IPredictiveRSDR::LayerDesc> layerDescs(3);
 
@@ -117,7 +117,7 @@ int main() {
 
 	sdr::IPredictiveRSDR prsdr;
 
-	prsdr.createRandom(2, 2, 8, layerDescs, -0.01f, 0.01f, 0.0f, generator);
+	prsdr.createRandom(4, 5, 8, layerDescs, -0.01f, 0.01f, 0.0f, generator);
 
 	float avgError = 1.0f;
 

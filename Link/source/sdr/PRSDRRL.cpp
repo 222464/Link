@@ -34,7 +34,7 @@ void PRSDRRL::createRandom(int inputWidth, int inputHeight, int inputFeedBackRad
 	int heightPrev = inputHeight;
 
 	for (int l = 0; l < _layerDescs.size(); l++) {
-		_layers[l]._sdr.createRandom(widthPrev, heightPrev, _layerDescs[l]._width, _layerDescs[l]._height, _layerDescs[l]._receptiveRadius, _layerDescs[l]._recurrentRadius, initMinWeight, initMaxWeight, generator);
+		//_layers[l]._sdr.createRandom(widthPrev, heightPrev, _layerDescs[l]._width, _layerDescs[l]._height, _layerDescs[l]._receptiveRadius, _layerDescs[l]._recurrentRadius, initMinWeight, initMaxWeight, generator);
 
 		_layers[l]._predictionNodes.resize(_layerDescs[l]._width * _layerDescs[l]._height);
 
@@ -158,7 +158,7 @@ void PRSDRRL::simStep(float reward, std::mt19937 &generator, bool learn) {
 	for (int l = 0; l < _layers.size(); l++) {
 		//_layers[l]._sdr.activate(_layerDescs[l]._sdrIter, _layerDescs[l]._sdrStepSize, _layerDescs[l]._sdrLambda);
 
-		_layers[l]._sdr.reconstruct();
+		//_layers[l]._sdr.reconstruct();
 
 		// Set inputs for next layer if there is one
 		if (l < _layers.size() - 1) {

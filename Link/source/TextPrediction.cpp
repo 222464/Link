@@ -18,6 +18,9 @@
 
 #include <duktape/duktape.h>
 
+#include <unordered_map>
+#include <unordered_set>
+
 #include <assert.h>
 
 int main() {
@@ -46,29 +49,43 @@ int main() {
 	int minimum = 255;
 	int maximum = 0;
 
+	std::unordered_set<char> characters;
+
 	for (int i = 0; i < test.length(); i++) {
 		minimum = std::min(static_cast<int>(test[i]), minimum);
 		maximum = std::max(static_cast<int>(test[i]), maximum);
+
+		if (characters.find(test[i]) == characters.end())
+			characters.insert(test[i]);
 	}
 
-	int numInputs = maximum - minimum + 1;
+	std::vector<char> indexToChar;
+	std::unordered_map<char, int> charToIndex;
+
+	// Map characters to indices and vice versa
+	for (std::unordered_set<char>::iterator it = characters.begin(); it != characters.end(); it++) {
+		indexToChar.push_back(*it);
+		charToIndex[*it] = indexToChar.size() - 1;
+	}
+
+	int numInputs = indexToChar.size();
 
 	int inputsRoot = std::ceil(std::sqrt(static_cast<float>(numInputs)));
 
 	std::vector<sdr::IPredictiveRSDR::LayerDesc> layerDescs(3);
 
-	layerDescs[0]._width = 16;
-	layerDescs[0]._height = 16;
+	layerDescs[0]._width = 8;
+	layerDescs[0]._height = 8;
 
-	layerDescs[1]._width = 12;
-	layerDescs[1]._height = 12;
+	layerDescs[1]._width = 6;
+	layerDescs[1]._height = 6;
 
-	layerDescs[2]._width = 8;
-	layerDescs[2]._height = 8;
+	layerDescs[2]._width = 4;
+	layerDescs[2]._height = 4;
 
 	sdr::IPredictiveRSDR prsdr;
 
-	prsdr.createRandom(inputsRoot, inputsRoot, 16, layerDescs, -0.01f, 0.01f, 0.0f, generator);
+	prsdr.createRandom(inputsRoot, inputsRoot, 8, layerDescs, -0.01f, 0.01f, 0.01f, 0.04f, 0.01f, generator);
 
 	// ---------------------------- Game Loop -----------------------------
 
@@ -125,7 +142,7 @@ int main() {
 		for (int i = 0; i < inputsRoot * inputsRoot; i++)
 			prsdr.setInput(i, 0.0f);
 
-		int index = test[current] - minimum;
+		int index = charToIndex[test[current]];
 
 		prsdr.setInput(index, 1.0f);
 
@@ -137,7 +154,7 @@ int main() {
 			if (prsdr.getPrediction(i) > prsdr.getPrediction(predIndex))
 				predIndex = i;
 
-		char predChar = predIndex + minimum;
+		char predChar = indexToChar[std::min(numInputs - 1, predIndex)];
 
 		std::cout << predChar;
 
