@@ -65,6 +65,7 @@ namespace sdr {
 		void createRandom(int visibleWidth, int visibleHeight, int hiddenWidth, int hiddenHeight, int receptiveRadius, int recurrentRadius, int lateralRadius, float initMinWeight, float initMaxWeight, float initMinInhibition, float initMaxInhibition, float initThreshold, std::mt19937 &generator);
 
 		void activate(int settleIter, int measureIter, float leak, float noise, std::mt19937 &generator);
+		void inhibit(const std::vector<float> &excitations, int settleIter, int measureIter, float leak, float noise, std::vector<float> &states, std::mt19937 &generator);
 		void reconstructFromSpikes();
 		void reconstructFromStates();
 		void reconstruct(const std::vector<float> &states, std::vector<float> &reconHidden, std::vector<float> &reconVisible);
