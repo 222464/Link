@@ -162,7 +162,7 @@ void IPredictiveRSDR::simStep(std::mt19937 &generator, bool learn) {
 
 				float error2 = predictionError * predictionError;
 
-				rewards[l][pi] = 1.0f - sigmoid(_layerDescs[l]._sdrSensitivity * (p._baseline - error2));
+				rewards[l][pi] = sigmoid(_layerDescs[l]._sdrSensitivity * (p._baseline - error2));
 
 				p._baseline = (1.0f - _layerDescs[l]._sdrBaselineDecay) * p._baseline + _layerDescs[l]._sdrBaselineDecay * error2;
 
@@ -185,7 +185,7 @@ void IPredictiveRSDR::simStep(std::mt19937 &generator, bool learn) {
 				for (int ci = 0; ci < p._feedBackConnections.size(); ci++)
 					activation += p._feedBackConnections[ci]._weight * _layers[l + 1]._predictionNodes[p._feedBackConnections[ci]._index]._state;
 			}
-
+			
 			// Predictive
 			for (int ci = 0; ci < p._predictiveConnections.size(); ci++)
 				activation += p._predictiveConnections[ci]._weight * _layers[l]._sdr.getHiddenState(p._predictiveConnections[ci]._index);

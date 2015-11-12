@@ -132,7 +132,6 @@ void IRSDR::activate(int settleIter, int measureIter, float leak, float noise, s
 		_hidden[hi]._activation = 0.0f;
 
 		_hidden[hi]._state = 0.0f;
-		_hidden[hi]._spikePrev = 0.0f;
 	}
 
 	for (int it = 0; it < settleIter; it++) {
@@ -223,7 +222,6 @@ void IRSDR::inhibit(const std::vector<float> &excitations, int settleIter, int m
 		_hidden[hi]._activation = 0.0f;
 
 		states[hi] = 0.0f;
-		_hidden[hi]._spikePrev = 0.0f;
 	}
 
 	for (int it = 0; it < settleIter; it++) {
@@ -384,7 +382,7 @@ void IRSDR::learn(float learnFeedForward, float learnRecurrent, float learnLater
 		for (int ci = 0; ci < _hidden[hi]._lateralConnections.size(); ci++)
 			_hidden[hi]._lateralConnections[ci]._weight = std::max(0.0f, _hidden[hi]._lateralConnections[ci]._weight + learnLateral * (_hidden[hi]._state * _hidden[_hidden[hi]._lateralConnections[ci]._index]._state - sparsity * sparsity));
 
-		_hidden[hi]._threshold = std::max(0.0f, _hidden[hi]._threshold + ((_hidden[hi]._state != 0.0f ? 1.0f : 0.0f) - sparsity) * learnThreshold);
+		_hidden[hi]._threshold = std::max(0.0f, _hidden[hi]._threshold + (_hidden[hi]._state - sparsity) * learnThreshold);
 	}
 }
 
@@ -401,7 +399,7 @@ void IRSDR::learn(const std::vector<float> &rewards, float lambda, float learnFe
 	for (int hi = 0; hi < _hidden.size(); hi++) {
 		float learn = _hidden[hi]._state;
 
-		if (learn != 0.0f) {
+		if (rewards[hi] != 0.0f) {
 			for (int ci = 0; ci < _hidden[hi]._feedForwardConnections.size(); ci++) {
 				float delta = learnFeedForward * rewards[hi] * _hidden[hi]._feedForwardConnections[ci]._trace - weightDecay * _hidden[hi]._feedForwardConnections[ci]._weight;
 
@@ -424,7 +422,7 @@ void IRSDR::learn(const std::vector<float> &rewards, float lambda, float learnFe
 		for (int ci = 0; ci < _hidden[hi]._lateralConnections.size(); ci++)
 			_hidden[hi]._lateralConnections[ci]._weight = std::max(0.0f, _hidden[hi]._lateralConnections[ci]._weight + learnLateral * (_hidden[hi]._state * _hidden[_hidden[hi]._lateralConnections[ci]._index]._state - sparsity * sparsity));
 
-		_hidden[hi]._threshold = std::max(0.0f, _hidden[hi]._threshold + ((_hidden[hi]._state != 0.0f ? 1.0f : 0.0f) - sparsity) * learnThreshold);
+		_hidden[hi]._threshold = std::max(0.0f, _hidden[hi]._threshold + (_hidden[hi]._state - sparsity) * learnThreshold);
 	}
 }
 

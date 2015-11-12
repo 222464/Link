@@ -70,18 +70,21 @@ int main() {
 
 	int numInputs = indexToChar.size();
 
-	int inputsRoot = std::ceil(std::sqrt(static_cast<float>(numInputs)));
+	int inputsRoot = std::ceil(std::sqrt(static_cast<float>(numInputs))) + 1;
 
-	std::vector<sdr::IPredictiveRSDR::LayerDesc> layerDescs(3);
+	std::vector<sdr::IPredictiveRSDR::LayerDesc> layerDescs(4);
 
 	layerDescs[0]._width = 16;
 	layerDescs[0]._height = 16;
 
-	layerDescs[1]._width = 14;
-	layerDescs[1]._height = 14;
+	layerDescs[1]._width = 16;
+	layerDescs[1]._height = 16;
 
-	layerDescs[2]._width = 12;
-	layerDescs[2]._height = 12;
+	layerDescs[2]._width = 16;
+	layerDescs[2]._height = 16;
+
+	layerDescs[3]._width = 16;
+	layerDescs[3]._height = 16;
 
 	sdr::IPredictiveRSDR prsdr;
 
@@ -131,10 +134,39 @@ int main() {
 			quit = true;
 
 		
-		if (current == 0) {
+		{
 			window.clear();
 			
 			window.draw(avgText);
+
+			const float scale = 4.0f;
+
+			sf::Image sdr;
+
+			sdr.create(prsdr.getLayerDescs().front()._width, prsdr.getLayerDescs().front()._height);
+
+			for (int x = 0; x < sdr.getSize().x; x++)
+				for (int y = 0; y < sdr.getSize().y; y++) {
+					sf::Color c = sf::Color::White;
+
+					c.r = c.g = c.b = prsdr.getLayers().front()._sdr.getHiddenState(x, y) * 255.0f;
+
+					sdr.setPixel(x, y, c);
+				}
+
+			sf::Texture sdrTex;
+
+			sdrTex.loadFromImage(sdr);
+
+			sf::Sprite sdrS;
+
+			sdrS.setTexture(sdrTex);
+
+			sdrS.setPosition(0.0f, window.getSize().y - sdrTex.getSize().y * scale);
+
+			sdrS.setScale(scale, scale);
+
+			window.draw(sdrS);
 
 			window.display();
 		}

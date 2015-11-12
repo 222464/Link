@@ -50,7 +50,7 @@ int main() {
 
 	layerDescs[0]._width = 32;
 	layerDescs[0]._height = 32;
-	layerDescs[0]._receptiveRadius = 12;
+	layerDescs[0]._receptiveRadius = 10;
 
 	layerDescs[1]._width = 24;
 	layerDescs[1]._height = 24;
@@ -265,9 +265,11 @@ int main() {
 					}
 			}
 			else {
+				const float predictionIncorporateRatio = 0.1f;
+
 				for (int x = 0; x < res.getSize().x; x++)
 					for (int y = 0; y < res.getSize().y; y++) {
-						prsdr.setInput(x, y, res.getPixel(x, y).r / 255.0f);
+						prsdr.setInput(x, y, (1.0f - predictionIncorporateRatio) * res.getPixel(x, y).r / 255.0f + predictionIncorporateRatio * prsdr.getPrediction(x, y));
 					}
 			}
 
