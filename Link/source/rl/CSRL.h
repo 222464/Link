@@ -19,7 +19,11 @@ namespace rl {
 
 			Column()
 			{
-				_prevStates.assign(0.0f);
+				#ifdef __GNUC__
+					_prevStates.fill(0.0f);
+				#else
+					_prevStates.assign(0.0f);
+				#endif
 			}
 		};
 

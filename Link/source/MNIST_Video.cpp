@@ -39,7 +39,7 @@ int main() {
 	std::vector<float> timeSeries;
 
 	std::ifstream fromFile("resources/train-images.idx3-ubyte", std::ios::binary | std::ios::in);
-
+		
 	if (!fromFile.is_open()) {
 		std::cerr << "Could not open train-images.idx3-ubyte!" << std::endl;
 
@@ -80,7 +80,7 @@ int main() {
 	plot._curves[0]._name = "Squared Error";
 
 	std::uniform_int_distribution<int> digitDist(0, 59999);
-	std::uniform_real<float> dist01(0.0f, 1.0f);
+	std::uniform_real_distribution<float> dist01(0.0f, 1.0f);
 
 	sf::RenderTexture rt;
 
