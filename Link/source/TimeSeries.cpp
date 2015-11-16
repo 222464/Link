@@ -1,7 +1,3 @@
-#include "Settings.h"
-
-#if EXPERIMENT_SELECTION == EXPERIMENT_TIMESERIES
-
 #include <sdr/IPredictiveRSDR.h>
 
 #include <simtree/SDRST.h>
@@ -210,5 +206,3 @@ int main(int argc, char* argv[]) {
 	
 	return 0;
 }
-
-#endif

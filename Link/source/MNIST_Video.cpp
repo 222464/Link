@@ -1,7 +1,3 @@
-#include "Settings.h"
-
-#if EXPERIMENT_SELECTION == EXPERIMENT_MNIST_VIDEO
-
 #include <sdr/IPredictiveRSDR.h>
 
 #include <simtree/SDRST.h>
@@ -48,15 +44,15 @@ int main() {
 
 	std::vector<sdr::IPredictiveRSDR::LayerDesc> layerDescs(4);
 
-	layerDescs[0]._width = 32;
-	layerDescs[0]._height = 32;
+	layerDescs[0]._width = 64;
+	layerDescs[0]._height = 64;
 	layerDescs[0]._receptiveRadius = 10;
 
-	layerDescs[1]._width = 24;
-	layerDescs[1]._height = 24;
+	layerDescs[1]._width = 48;
+	layerDescs[1]._height = 48;
 
-	layerDescs[2]._width = 16;
-	layerDescs[2]._height = 16;
+	layerDescs[2]._width = 24;
+	layerDescs[2]._height = 24;
 
 	layerDescs[3]._width = 12;
 	layerDescs[3]._height = 12;
@@ -365,5 +361,3 @@ int main() {
 
 	return 0;
 }
-
-#endif

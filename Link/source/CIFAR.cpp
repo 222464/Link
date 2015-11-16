@@ -1,7 +1,3 @@
-#include "Settings.h"
-
-#if EXPERIMENT_SELECTION == EXPERIMENT_CIFAR
-
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
@@ -235,5 +231,3 @@ int main() {
 
 	return 0;
 }
-
-#endif

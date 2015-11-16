@@ -1,9 +1,3 @@
-#include "Settings.h"
-
-#if EXPERIMENT_SELECTION == EXPERIMENT_TEXT_PREDICTION
-
-#include "Settings.h"
-
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
@@ -209,5 +203,3 @@ int main() {
 
 	return 0;
 }
-
-#endif

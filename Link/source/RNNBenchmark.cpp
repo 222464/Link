@@ -1,7 +1,3 @@
-#include "Settings.h"
-
-#if EXPERIMENT_SELECTION == EXPERIMENT_RNN_BENCHMARK
-
 #include <sdr/IPredictiveRSDR.h>
 
 #include <simtree/SDRST.h>
@@ -145,5 +141,3 @@ int main() {
 
 	return 0;
 }
-
-#endif
