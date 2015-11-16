@@ -38,7 +38,7 @@ int main() {
 
 	std::uniform_real_distribution<float> dist01(0.0f, 1.0f);
 
-	std::ifstream fromFile("corpus.txt");
+	std::ifstream fromFile("resources/corpus.txt");
 
 	fromFile.seekg(0, std::ios::end);
 	size_t size = fromFile.tellg();
@@ -88,7 +88,8 @@ int main() {
 
 	sdr::IPredictiveRSDR prsdr;
 
-	prsdr.createRandom(inputsRoot, inputsRoot, 16, layerDescs, -0.01f, 0.01f, 0.01f, 0.04f, 0.05f, generator);
+	//prsdr.createRandom(inputsRoot, inputsRoot, 16, layerDescs, -0.01f, 0.01f, 0.01f, 0.04f, 0.05f, generator);
+	prsdr.createRandom(inputsRoot, inputsRoot, 16, layerDescs, -0.01f, 0.01f, 0.01f, 0.05f, 0.1f, generator);
 
 	// ---------------------------- Game Loop -----------------------------
 
@@ -105,7 +106,7 @@ int main() {
 	float averageError = 0.0f;
 
 	sf::Font font;
-	if (!font.loadFromFile("C:/Windows/Fonts/Arial.ttf"))
+	if (!font.loadFromFile("resources/arial.ttf"))
 		return 1;
 
 	sf::Text avgText;

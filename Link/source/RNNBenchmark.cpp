@@ -117,7 +117,7 @@ int main() {
 
 	sdr::IPredictiveRSDR prsdr;
 
-	prsdr.createRandom(4, 5, 8, layerDescs, -0.01f, 0.01f, 0.0f, generator);
+	prsdr.createRandom(64, 64, 8, layerDescs, -0.01f, 0.01f, 0.01f, 0.05f, 0.1f, generator);
 
 	float avgError = 1.0f;
 

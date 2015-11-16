@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.0)
 
 project(Link)
 
-set(CMAKE_CXX_FLAGS "-std=c++14")
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(CMAKE_CXX_FLAGS "-std=c++14 -O3")
+endif()
 
 FIND_PACKAGE ( Threads REQUIRED )
 
