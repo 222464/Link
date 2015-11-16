@@ -1,7 +1,3 @@
-#include "Settings.h"
-
-#if EXPERIMENT_SELECTION == EXPERIMENT_TIMESERIES
-
 #include <sdr/IPredictiveRSDR.h>
 
 #include <simtree/SDRST.h>
@@ -16,22 +12,60 @@
 #include <random>
 #include <algorithm>
 
-int main() {
-	std::mt19937 generator(time(nullptr));
-
+int main(int argc, char* argv[]) {
+	
+	float validationSize = 0.5f;
+	unsigned int seed = std::time(nullptr);
+	unsigned int epochs = 5;
+	
+	std::cout << "Timeseries prediction experiment with IPredictiveRSDR algorithm" << std::endl;
+	
+	std::string optHelp = "--help";
+	std::string optValsize = "--validation";
+	std::string optSeed = "--seed";
+	std::string optEpoch = "--epochs";
+	
+	int lastArg = 2;
+	
+	for (int i=1; i<argc; i++) {
+		if (optHelp.compare(argv[i]) == 0) {
+			std::cout << "Usage: Link [--validation 0.5 --seed 1337 --epochs 5] path/to/dataset" << std::endl;
+			return 0;
+		}
+		if (optValsize.compare(argv[i]) == 0 && i+1 < argc) {
+			validationSize = std::stof(argv[i+1]); lastArg = i+1;
+		}
+		if (optSeed.compare(argv[i]) == 0 && i+1 < argc) {
+			seed = std::stoi(argv[i+1]); lastArg = i+1;
+		}
+		if (optEpoch.compare(argv[i]) == 0 && i+1 < argc) {
+			epochs = std::stoi(argv[i+1]); lastArg = i+1;
+		}
+	}
+	
+	std::mt19937 generator(seed);
+	std::cout << "Seed: " << seed << std::endl;
+	
 	std::vector<float> timeSeries;
-
-	std::ifstream fromFile("resources/pressures.txt");
-
+	
+	std::string* datasetPath = new std::string("resources/laser.txt");
+	if (lastArg+1 < argc) {
+		delete datasetPath;
+		datasetPath = new std::string(argv[lastArg+1]); //Dataset is the last unused argument
+	}
+		
+	std::ifstream fromFile(*datasetPath);
+	
 	if (!fromFile.is_open()) {
-		std::cerr << "Could not open pressures.txt!" << std::endl;
+		std::cerr << "Could not open " << *datasetPath << " !" << std::endl;
 
 		return 1;
 	}
 
 	float minVal = 999.0f;
 	float maxVal = -999.0f;
-
+	float sum = 0.0f;
+	
 	while (fromFile.good() && !fromFile.eof()) {
 		float value;
 
@@ -42,15 +76,21 @@ int main() {
 		minVal = std::min(minVal, value);
 
 		maxVal = std::max(maxVal, value);
+		
+		sum += value;
 	}
-
+	
+	std::cout << "Loaded dataset " << *datasetPath << ", min: " << minVal << ", max: " << maxVal << ", avg: " << (sum/timeSeries.size()) << std::endl;
+	
 	// Rescale
 	for (int i = 0; i < timeSeries.size(); i++) {
 		timeSeries[i] = (timeSeries[i] - minVal) / std::max(0.0001f, (maxVal - minVal));
 	}
-
-	int partition = timeSeries.size() * 0.5f;
-
+	
+	int partition = timeSeries.size() * (1-validationSize);
+	
+	std::cout << "Using " << partition << " samples for training, " << timeSeries.size()-partition << " samples for validation" << std::endl;
+	
 	/*timeSeries.clear();
 
 	timeSeries.resize(10);
@@ -89,9 +129,13 @@ int main() {
 	plot._curves.push_back(vis::Curve());
 
 	plot._curves[0]._name = "Squared Error";
-
 	
-	for (int iter = 0; iter < 5; iter++) {
+	std::cout << "--- Training ---" << std::endl;
+	
+	for (int iter = 0; iter < epochs; iter++) {
+		
+		std::cout << "Epoch: " << iter << std::endl;
+		
 		for (int i = 0; i < partition; i++) {
 			float error = prsdr.getPrediction(0) - timeSeries[i];
 
@@ -104,14 +148,17 @@ int main() {
 			prsdr.simStep(generator);
 
 			if (i % 10 == 0) {
-				std::cout << "Iteration " << i << ": " << avgError << std::endl;
+				std::cout << "Sample: " << i << " training loss: " << avgError << std::endl;
 			}
 		}
 	}
 
 	int step = 0;
+	
+	std::cout << "--- Validating ---" << std::endl;
 
-	for (int i = 0; i < partition; i++) {
+	for (int i = partition; i < timeSeries.size(); i++) {
+		
 		float error = prsdr.getPrediction(0) - timeSeries[i];
 
 		float error2 = error * error;
@@ -123,7 +170,7 @@ int main() {
 		prsdr.simStep(generator, false);
 
 		if (step % 10 == 0) {
-			std::cout << "Iteration " << i << ": " << avgError << std::endl;
+			std::cout << "Sample: " << i << " validation loss: " << avgError << std::endl;
 		}
 
 		vis::Point p;
@@ -154,8 +201,8 @@ int main() {
 	rt.display();
 
 	rt.getTexture().copyToImage().saveToFile("plot.png");
-
+	
+	
+	
 	return 0;
 }
-
-#endif
